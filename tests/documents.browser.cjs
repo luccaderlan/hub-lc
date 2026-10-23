@@ -10,12 +10,12 @@ function fixturePdf(){
 module.exports=async({browser,origin,out})=>{
   const context=await browser.newContext({viewport:{width:1440,height:1050},acceptDownloads:true}),page=await context.newPage(),errors=[];
   page.on('pageerror',err=>errors.push(err.message));
-  const nav=name=>page.locator('.sidebar [data-view]').filter({hasText:name}).first().click(),action=name=>page.locator(`[data-action=${name}]:visible`).first().click();
+  const nav=name=>require('./navigation.cjs')(page,name),action=name=>page.locator(`[data-action=${name}]:visible`).first().click();
   const form=page.locator('#editor-form'),submit=()=>form.locator('button[type=submit]').click(),stored=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('hub-lc:v1')));
   const pdf=fixturePdf(),upload=()=>page.locator('#pdf-file').setInputFiles({name:'Material de estudo.pdf',mimeType:'application/pdf',buffer:pdf});
   try{
     await page.goto(origin+'/#documents');await page.getByRole('heading',{name:'Documentos',exact:true}).waitFor();
-    await page.locator('#pdf-file').setInputFiles({name:'invalid.pdf',mimeType:'application/pdf',buffer:Buffer.from('not pdf')});await page.locator('#toast').filter({hasText:'cabeçalho PDF'}).waitFor();
+    await page.locator('#pdf-file').setInputFiles({name:'invalid.pdf',mimeType:'application/pdf',buffer:Buffer.from('not pdf')});await page.locator('#toast').filter({hasText:'não corresponde ao formato PDF'}).waitFor();
     await upload();await page.locator('#pdf-viewer').waitFor();
     assert.equal((await stored()).documents.length,1);assert.match(await page.locator('#pdf-viewer').getAttribute('src'),/^blob:.*#page=1$/);
     const d=(await stored()).documents[0];
@@ -38,7 +38,7 @@ module.exports=async({browser,origin,out})=>{
     const corrupt=structuredClone(backup);corrupt.documentFiles[0].data=Buffer.from('%PDF-invalid').toString('base64');
     await freshPage.locator('#import-file').setInputFiles({name:'invalid.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(corrupt))});await freshPage.locator('#toast').filter({hasText:'não corresponde'}).waitFor();assert.equal(await freshPage.evaluate(()=>localStorage.getItem('hub-lc:v1')),null);
     await freshPage.locator('#import-file').setInputFiles({name:'backup.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(backup))});await freshPage.locator('#editor-form button[type=submit]').click();await freshPage.getByRole('heading',{name:'O que te move hoje?'}).waitFor();
-    await freshPage.locator('.sidebar [data-view=documents]').click();await freshPage.locator('[data-action=open-document]').click();await freshPage.locator('[data-document-download]').waitFor();
+    await require('./navigation.cjs')(freshPage,'documents');await freshPage.locator('[data-action=open-document]').click();await freshPage.locator('[data-document-download]').waitFor();
     const restoredDownload=freshPage.waitForEvent('download');await freshPage.locator('[data-document-download]').click();const restored=await restoredDownload;assert.deepEqual(await fs.readFile(await restored.path()),pdf);
     await freshPage.evaluate(hash=>new Promise((resolve,reject)=>{const req=indexedDB.open('hub-lc:pdfs',1);req.onsuccess=()=>{const db=req.result,tx=db.transaction('files','readwrite');tx.objectStore('files').delete(hash);tx.oncomplete=()=>{db.close();resolve();};tx.onerror=()=>reject(tx.error);};}),d.sha256);
     await freshPage.reload();await freshPage.locator('[data-pdf-repair]').waitFor();await freshPage.locator('[data-action=replace-pdf]').click();

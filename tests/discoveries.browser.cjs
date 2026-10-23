@@ -4,7 +4,7 @@ module.exports=async({browser,origin,out})=>{
   const context=await browser.newContext({viewport:{width:1440,height:1050},acceptDownloads:true});
   const page=await context.newPage(),errors=[];
   page.on('pageerror',error=>errors.push(error.message));
-  const nav=name=>page.locator('.sidebar [data-view]').filter({hasText:name}).first().click();
+  const nav=name=>require('./navigation.cjs')(page,name);
   const action=(name,scope=page)=>scope.locator(`[data-action="${name}"]:visible`).first().click();
   const form=page.locator('#editor-form');
   const submit=()=>form.locator('button[type=submit]').click();
@@ -81,12 +81,12 @@ module.exports=async({browser,origin,out})=>{
     assert.equal((await stored()).notes[0].body,'Quero experimentar isso nos meus estudos.');
 
     await nav('Áreas');await page.locator('[data-action=open-division][data-division="Neurociência"]').click();
-    await page.locator('.area-card [data-action=edit-area]').click();await action('delete-record',form);await submit();
+    await page.locator('[data-action=filter-area]').filter({hasText:'Neurociência'}).click();await page.locator('[data-action=edit-area]').click();await action('delete-record',form);await submit();
     // Reimporta a descoberta sem a área removida: referências continuam válidas.
     const after=await stored();after.discoveries=[{...backup.discoveries[0],areaIds:[api.id]}];
     await page.locator('#import-file').setInputFiles({name:'updated.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(after))});await submit();
     await nav('Áreas');await page.locator('[data-action=open-division][data-division="TI"]').click();
-    await page.locator('.area-card').filter({has:page.getByRole('heading',{name:'APIs',exact:true})}).locator('[data-action=edit-area]').click();await action('delete-record',form);await submit();
+    await page.locator('[data-action=filter-area]').filter({hasText:'APIs'}).click();await page.locator('[data-action=edit-area]').click();await action('delete-record',form);await submit();
     assert.deepEqual((await stored()).discoveries[0].areaIds,[]);
     assert.deepEqual(errors,[]);
     return 'descobertas: captura, momentos no vídeo, sugestões e múltiplos temas, notas, quadro, dicionário, duplicatas, backup e exclusões preservando registros; desktop e mobile';

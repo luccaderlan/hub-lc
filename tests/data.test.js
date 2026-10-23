@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createInitial,validateState,safeUrl,timerElapsed,pauseTimer,percentages,readState,writeState,STORAGE_KEY,dictionarySnapshot,makeDiscovery,discoveryConnections,timestampUrl,inspectPdf,decodePdfBackup,MAX_PDF_BYTES} from '../data.js';
+import {createInitial,validateState,safeUrl,timerElapsed,pauseTimer,percentages,readState,writeState,STORAGE_KEY,dictionarySnapshot,makeDiscovery,discoveryConnections,timestampUrl,inspectPdf,decodePdfBackup,MAX_PDF_BYTES,adjustHighlights} from '../data.js';
 
 test('primeiro acesso permite estudar sem horários, metas ou status de leitura impostos',()=>{
   const s=createInitial();assert.doesNotThrow(()=>validateState(s));
@@ -144,4 +144,28 @@ test('PDFs usam impressão do conteúdo e rejeitam arquivos inválidos ou grande
   const corrupt=structuredClone(files);corrupt[0].data=Buffer.from('%PDF-1.4\nchanged').toString('base64');await assert.rejects(()=>decodePdfBackup(s.documents,corrupt));
   for(const mutate of [x=>x.documents[0].areaId='missing',x=>x.documents[0].page='-1',x=>x.documents[0].sha256='bad',x=>x.documents[0].size=MAX_PDF_BYTES+1]){const invalid=structuredClone(s);mutate(invalid);assert.throws(()=>validateState(invalid));}
   const old=createInitial();delete old.documents;assert.deepEqual(validateState(old).documents,[]);assert.equal(old.documents,undefined);
+});
+
+
+test('marcações acompanham inserções, exclusões e substituições',()=>{
+  const ranges=[{start:4,end:9,color:'yellow'}];
+  assert.deepEqual(adjustHighlights('Uma ideia boa','Nova: Uma ideia boa',ranges),[{start:10,end:15,color:'yellow'}]);
+  assert.deepEqual(adjustHighlights('Uma ideia boa','Uma ideia nova boa',ranges),ranges);
+  assert.deepEqual(adjustHighlights('Uma ideia boa','Uma boa',ranges),[]);
+  assert.deepEqual(adjustHighlights('Uma ideia boa','Uma ideia! boa',ranges),ranges);
+  assert.deepEqual(adjustHighlights('Uma ideia boa','Uma IDEIA boa',ranges),ranges);
+});
+test('backup preserva vínculos e marcações e rejeita referências inválidas',()=>{
+  const s=createInitial();s.notes.push({id:'test-note',title:'Ideias',kind:'canvas',category:'Anotação',body:'Uma ideia',areaId:'',bookId:'',materialId:'',page:'',updatedAt:new Date().toISOString(),stickies:[{id:'a',text:'A',x:5,y:5,tone:'paper'},{id:'b',text:'B',x:40,y:40,tone:'jade'}],connections:[{from:'a',to:'b'}],highlights:[{start:4,end:9,color:'pink'}]});
+  assert.deepEqual(validateState(JSON.parse(JSON.stringify(s))).notes,s.notes);
+  for(const mutate of [n=>n.connections.push({from:'b',to:'a'}),n=>n.connections[0].to='missing',n=>n.connections[0].to='a',n=>n.highlights[0].end=10,n=>n.highlights[0].color='invalid',n=>n.highlights.push({start:5,end:8,color:'green'})]){const copy=structuredClone(s);mutate(copy.notes[0]);assert.throws(()=>validateState(copy));}
+  const old=structuredClone(s);delete old.notes[0].connections;delete old.notes[0].highlights;assert.doesNotThrow(()=>validateState(old));
+});
+
+
+test('mural e post-its preservam dimensões no backup e aceitam dados antigos',()=>{
+  const s=createInitial();s.notes.push({id:'sized-note',title:'Mural',kind:'canvas',category:'Anotação',body:'',areaId:'',bookId:'',materialId:'',page:'',updatedAt:new Date().toISOString(),canvas:{width:1600,height:1100},stickies:[{id:'sized-sticky',text:'Uma ideia',x:10,y:20,tone:'paper',width:320,height:260}]});
+  assert.deepEqual(validateState(JSON.parse(JSON.stringify(s))).notes,s.notes);
+  for(const mutate of [n=>n.canvas.width=0,n=>n.canvas.height=8001,n=>n.canvas=null,n=>n.canvas.width='900',n=>n.stickies[0].width=179,n=>n.stickies[0].height=159,n=>n.stickies[0].width=Infinity,n=>n.stickies[0].height=1001]){const copy=structuredClone(s);mutate(copy.notes[0]);assert.throws(()=>validateState(copy));}
+  const old=structuredClone(s);delete old.notes[0].canvas;delete old.notes[0].stickies[0].width;delete old.notes[0].stickies[0].height;assert.doesNotThrow(()=>validateState(old));
 });

@@ -1,3 +1,5 @@
+import {inspectDocument,documentFormat} from './documents.js';
+export {inspectDocument,documentFormat} from './documents.js';
 export const STORAGE_KEY = 'hub-lc:v1';
 // Cópia do Dicionário DEV consultada em 13/10/2026. Notion permanece a origem.
 export const dictionarySnapshot = {
@@ -410,13 +412,13 @@ export async function pdfBackupFiles(documents){
   return {files,missing};
 }
 export async function decodePdfBackup(documents,files){
-  if(!Array.isArray(files)||files.length>documents.length)throw new Error('Arquivos PDF inválidos no backup.');
+  if(!Array.isArray(files)||files.length>documents.length)throw new Error('Arquivos inválidos no backup.');
   const hashes=new Set(),decoded=[];
   for(const file of files){
-    if(!file||typeof file.data!=='string'||file.data.length>Math.ceil(MAX_PDF_BYTES/3)*4||!file.data.length||file.data.length%4||!/^[A-Za-z0-9+/]*={0,2}$/.test(file.data)||hashes.has(file.sha256))throw new Error('Arquivos PDF inválidos no backup.');
-    const document=documents.find(d=>d.sha256===file.sha256);if(!document)throw new Error('O backup contém um PDF sem cadastro correspondente.');
-    const bytes=Uint8Array.from(atob(file.data),c=>c.charCodeAt(0)),blob=new Blob([bytes],{type:'application/pdf'}),checked=await inspectPdf(blob);
-    if(checked.sha256!==document.sha256||checked.size!==document.size)throw new Error('O PDF do backup não corresponde ao documento cadastrado.');
+    if(!file||typeof file.data!=='string'||file.data.length>Math.ceil(MAX_PDF_BYTES/3)*4||!file.data.length||file.data.length%4||!/^[A-Za-z0-9+/]*={0,2}$/.test(file.data)||hashes.has(file.sha256))throw new Error('Arquivos inválidos no backup.');
+    const document=documents.find(d=>d.sha256===file.sha256);if(!document)throw new Error('O backup contém um arquivo sem cadastro correspondente.');
+    const bytes=Uint8Array.from(atob(file.data),c=>c.charCodeAt(0)),blob=new Blob([bytes],{type:documentFormat(document).mime}),checked=await inspectDocument(blob,document.fileName);
+    if(checked.sha256!==document.sha256||checked.size!==document.size)throw new Error('O arquivo do backup não corresponde ao documento cadastrado.');
     hashes.add(file.sha256);decoded.push({sha256:file.sha256,blob});
   }
   return decoded;
@@ -486,7 +488,7 @@ export function validateState(input) {
   for(const c of input.columns) if(!string(c.name,500)||!c.name.trim()) fail();
   const areaIds=new Set(input.areas.map(a=>a.id)),columnIds=new Set(input.columns.map(c=>c.id)),bookIds=new Set(input.books.map(b=>b.id)),materialIds=new Set(input.materials.map(m=>m.id)),discoveryIds=new Set(input.discoveries.map(d=>d.id)),documentIds=new Set(input.documents.map(d=>d.id));
   const ref=(id,set)=>string(id,200) && (!id || set.has(id));
-  for(const d of input.documents)if(!string(d.title,500)||!d.title.trim()||!string(d.fileName,500)||!d.fileName.trim()||!Number.isInteger(d.size)||d.size<=0||d.size>MAX_PDF_BYTES||!string(d.sha256,64)||!/^[a-f0-9]{64}$/.test(d.sha256)||!ref(d.areaId,areaIds)||!string(d.description)||!string(d.page,30)||(d.page!==''&&(!/^\d+$/.test(d.page)||Number(d.page)<1||Number(d.page)>1000000))||!string(d.createdAt,100))fail();
+  for(const d of input.documents)if((d.format!==undefined&&(!string(d.format,10)||!documentFormat(d).supported||d.format!==documentFormat(d).extension))||!string(d.title,500)||!d.title.trim()||!string(d.fileName,500)||!d.fileName.trim()||!Number.isInteger(d.size)||d.size<=0||d.size>MAX_PDF_BYTES||!string(d.sha256,64)||!/^[a-f0-9]{64}$/.test(d.sha256)||!ref(d.areaId,areaIds)||!string(d.description)||!string(d.page,30)||(d.page!==''&&(!/^\d+$/.test(d.page)||Number(d.page)<1||Number(d.page)>1000000))||!string(d.createdAt,100))fail();
   for(const d of input.discoveries) {
     if(!string(d.title,500)||!d.title.trim()||!string(d.url,4000)||!safeUrl(d.url)||!string(d.description)||!DISCOVERY_KINDS.includes(d.kind)||!DISCOVERY_STATUSES.includes(d.status)||!string(d.createdAt,100)||!string(d.updatedAt,100)||!Array.isArray(d.tags)||d.tags.length>30||d.tags.some(t=>!string(t,100)||!t.trim())||!Array.isArray(d.areaIds)||d.areaIds.length>100||new Set(d.areaIds).size!==d.areaIds.length||d.areaIds.some(id=>!id||!ref(id,areaIds))||!Array.isArray(d.points)||d.points.length>200)fail();
     const pointIds=new Set();
@@ -502,13 +504,26 @@ export function validateState(input) {
   const numberText=v=>string(v,30) && (v==='' || (Number.isFinite(Number(v)) && Number(v)>=0));
   for(const b of input.books) if(!string(b.title,500)||!b.title.trim()||!string(b.author,500)||!['','Quero ler','Lendo','Pausado','Lido'].includes(b.status)||!numberText(b.page)||!numberText(b.total)||!string(b.chapter,500)||!ref(b.areaId,areaIds)||(b.total!==''&&Number(b.total)<=0)||(b.page!==''&&b.total!==''&&Number(b.page)>Number(b.total))) fail();
   for(const n of input.notes) {
+    if(n.videoUrl!==undefined&&(!string(n.videoUrl,4000)||(n.videoUrl&&!safeUrl(n.videoUrl))))fail();
+    if(n.videoPosition!==undefined&&!string(n.videoPosition,50))fail();
     if(n.documentId!==undefined&&!ref(n.documentId,documentIds))fail();
     if(n.discoveryId!==undefined&&!ref(n.discoveryId,discoveryIds))fail();
     if(!string(n.title,500)||!n.title.trim()||!string(n.body)||!['text','canvas'].includes(n.kind)||!['Anotação','Trecho','Reflexão','Dúvida'].includes(n.category)||!ref(n.areaId,areaIds)||!ref(n.bookId,bookIds)||!ref(n.materialId,materialIds)||!string(n.page,50)||!string(n.updatedAt,100)||!Array.isArray(n.stickies)||n.stickies.length>200) fail();
+    if(n.canvas!==undefined&&(!n.canvas||!Number.isInteger(n.canvas.width)||!Number.isInteger(n.canvas.height)||n.canvas.width<480||n.canvas.width>8000||n.canvas.height<360||n.canvas.height>8000))fail();
+    if(n.highlights!==undefined){
+      if(!Array.isArray(n.highlights)||n.highlights.length>200000)fail();
+      let end=0;for(const h of n.highlights){if(!h||!Number.isInteger(h.start)||!Number.isInteger(h.end)||h.start<end||h.end<=h.start||h.end>n.body.length||!['yellow','green','pink'].includes(h.color))fail();end=h.end;}
+    }
     const stickyIds=new Set();
     for(const p of n.stickies) {
       if(!p||!string(p.id,200)||!/^[A-Za-z0-9_-]+$/.test(p.id)||stickyIds.has(p.id)||!string(p.text,20000)||!Number.isFinite(p.x)||!Number.isFinite(p.y)||p.x<0||p.x>100||p.y<0||p.y>100||!['paper','jade','rose'].includes(p.tone)) fail();
+      if(p.width!==undefined&&(!Number.isInteger(p.width)||p.width<180||p.width>1000))fail();
+      if(p.height!==undefined&&(!Number.isInteger(p.height)||p.height<160||p.height>1000))fail();
       stickyIds.add(p.id);
+    }
+    if(n.connections!==undefined){
+      if(!Array.isArray(n.connections)||n.connections.length>19900)fail();
+      const pairs=new Set();for(const c of n.connections){if(!c||!stickyIds.has(c.from)||!stickyIds.has(c.to)||c.from===c.to)fail();const pair=[c.from,c.to].sort().join(':');if(pairs.has(pair))fail();pairs.add(pair);}
     }
   }
   for(const s of input.sessions) if(!ref(s.areaId,areaIds)||!ref(s.bookId,bookIds)||!Number.isFinite(s.minutes)||s.minutes<=0||s.minutes>1000000||!string(s.date,10)||!/^\d{4}-\d{2}-\d{2}$/.test(s.date)||!string(s.summary)||!string(s.next)) fail();
@@ -529,4 +544,16 @@ export function writeState(storage,state) {
   const raw=JSON.stringify(checked);
   storage.setItem(STORAGE_KEY,raw);
   return raw;
+}
+
+// Preserve highlights around an edited span; replacement text inherits an enclosing mark.
+export function adjustHighlights(before,after,ranges){
+  let start=0;while(start<before.length&&start<after.length&&before[start]===after[start])start++;
+  let oldEnd=before.length,newEnd=after.length;while(oldEnd>start&&newEnd>start&&before[oldEnd-1]===after[newEnd-1]){oldEnd--;newEnd--;}
+  const delta=newEnd-oldEnd;
+  return ranges.map(h=>{
+    if(h.end<=start)return {...h};
+    if(h.start>=oldEnd)return {...h,start:h.start+delta,end:h.end+delta};
+    return {...h,start:Math.min(h.start,start),end:h.end>=oldEnd?h.end+delta:newEnd};
+  }).filter(h=>h.end>h.start).reduce((result,h)=>{const last=result.at(-1);if(last&&h.start<last.end)h={...h,start:last.end};if(h.end>h.start)result.push(h);return result;},[]);
 }
