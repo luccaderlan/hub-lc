@@ -1,5 +1,15 @@
 # Histórico de alterações
 
+## 26/10/2026 — estudos organizados e espaço de leitura
+
+- A opção Tudo em Estudos apresenta Referências, Documentos, Links e vídeos e Anotações em seções consecutivas, com títulos, contadores e separadores. Os filtros individuais continuam disponíveis.
+- Cards de estudo compartilham espaçamento, hierarquia de metadados, títulos e resumos limitados na listagem e rodapés alinhados. A grade se adapta a três, duas ou uma coluna e mantém botões de toque de 44 px no celular.
+- Documentos permite filtrar pela extensão dos arquivos cadastrados, em conjunto com busca e assunto. A seleção permanece após recarregar e pode ser removida em Limpar filtros.
+- O Dicionário DEV permite adicionar palavras com categoria, significado, comparação, exemplo e fonte opcional, além de excluir termos locais ou importados. As mudanças participam das conexões com descobertas e são preservadas no backup, sem alterar o Notion.
+- Cada livro abre um espaço próprio com capa tipográfica, progresso, retomada por página e capítulo, próximo passo, caderno livre com salvamento automático, anotações por página e murais de post-its com cores, vínculos, zoom e tela ampliada.
+- O espaço de leitura mantém registros separados por livro; notas abertas pela área geral oferecem um caminho de volta ao livro. Backup e exportação Markdown preservam o caderno e a retomada, com compatibilidade com registros antigos.
+- Novos testes verificam persistência, isolamento entre livros, inclusão e exclusão de palavras, filtros e os layouts de leitura nos temas claro/escuro entre 320 e 1440 px.
+
 ## 23/10/2026 — atualização após a versão inicial
 
 Esta atualização reúne as alterações locais que ainda não estavam no GitHub. A base de comparação é o commit `c5c235e` (`Initial Hub LC local application`).

@@ -47,7 +47,14 @@ module.exports=async({browser,origin,out})=>{
     await page.reload();mural=await note('canvas');assert.equal(mural.stickies[0].text,'Primeira ideia');assert.equal(mural.canvas.width,900);assert.equal(mural.connections.length,1);assert.ok(mural.stickies[0].width>220);
     await action('canvas-fit');await page.screenshot({path:out+'/hub-lc-canvas-desktop.png',fullPage:true});
     // Remove a link; moving a card onto the other card also links and restores its position.
-    await page.locator('[data-sticky-connections] summary').click();await action('unlink-sticky');await submit();assert.equal((await note('canvas')).connections.length,0);
+    await action('canvas-expand');await action('manage-sticky-connections');
+    assert.equal(await page.locator('#editor [data-action=unlink-sticky]').count(),1);
+    await action('unlink-sticky');await action('close-dialog');assert.equal((await note('canvas')).connections.length,1);
+    await action('manage-sticky-connections');await action('unlink-sticky');await submit();
+    assert.equal((await note('canvas')).connections.length,0);assert.equal((await note('canvas')).stickies.length,2);
+    assert.equal((await note('canvas')).stickies[0].text,'Primeira ideia');assert.equal(await page.locator('.sticky-links path').count(),0);
+    assert.equal(await page.locator('[data-action=manage-sticky-connections]').innerText(),'Conexões (0)');
+    await page.keyboard.press('Escape');await page.reload();assert.equal((await note('canvas')).connections.length,0);await action('canvas-fit');
     await action('canvas-expand');await action('canvas-fit');const from=(await note('canvas')).stickies[0];await dragBetween(stickies.first().locator('header>span'),stickies.last().locator('textarea'));assert.equal((await note('canvas')).connections.length,1);assert.ok(Math.abs((await note('canvas')).stickies[0].x-from.x)<.01);await page.keyboard.press('Escape');
     await action('canvas-fit');
     // Resize the world with its corner handle while it is fully visible.

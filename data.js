@@ -358,6 +358,7 @@ export function createInitial() {
     schemaVersion:1, areas,
     materials:[material('Aprender Java','Java','https://dev.java/learn/'),material('Guias do Maven','Maven','https://maven.apache.org/guides/'),material('Guias do Spring','Spring Boot','https://spring.io/guides/'),material('Tutorial do PostgreSQL','PostgreSQL','https://www.postgresql.org/docs/current/tutorial.html')],
     columns:['Ideias','Em andamento','Para revisar','Concluído'].map(name=>({id:uid(),name})),tasks:[],
+    customTerms:[],hiddenTerms:[],
     books:[['O espírito do guerreiro','Steven Pressfield'],['A arte da Guerra','Sun Tzu']].map(([title,author])=>({id:uid(),title,author,status:'',page:'',total:'',chapter:'',areaId:''})),
     notes:[],sessions:[],discoveries:[],documents:[],
     timer:{running:false,areaId:'',bookId:'',startedAt:null,elapsedMs:0,targetMinutes:''},
@@ -432,8 +433,13 @@ export function makeDiscovery(url,title='',description='') {
   const now=new Date().toISOString();
   return {id:uid(),url:checked,title:title.trim()||host,description:description.trim(),kind:video?'Vídeo':'Outro',status:'Para explorar',tags:[],areaIds:[],points:[],createdAt:now,updatedAt:now};
 }
+// User additions and removals stay local and travel with the complete backup.
+export function dictionaryTerms(state={}) {
+  const hidden=new Set(state.hiddenTerms||[]);
+  return [...dictionarySnapshot.terms.filter(t=>!hidden.has(t.url)),...(state.customTerms||[])];
+}
 const normalized=text=>text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-export function discoveryConnections(discovery,areas,notes=[]) {
+export function discoveryConnections(discovery,areas,notes=[],termsSource=dictionarySnapshot.terms) {
   // Sugestões usam somente o que a pessoa registrou; o conteúdo remoto não é consultado.
   const text=[discovery.title,discovery.description,...discovery.tags,...discovery.points.map(p=>p.text),...notes.filter(n=>n.discoveryId===discovery.id&&!n.bookId).map(n=>n.title+' '+n.body)].join(' ');
   const normalizedText=' '+normalized(text)+' ';
@@ -444,7 +450,7 @@ export function discoveryConnections(discovery,areas,notes=[]) {
     const match=[a.name,...(hints[a.name]||[])].find(mentions);
     return match?[{area:a,reason:`Você registrou “${match}”.`}]:[];
   });
-  const terms=dictionarySnapshot.terms.filter(t=>mentions(t.word));
+  const terms=termsSource.filter(t=>mentions(t.word));
   return {confirmed,suggested,terms};
 }
 export function timestampUrl(url,position) {
@@ -475,7 +481,8 @@ export function validateState(input) {
   const fail=()=>{throw new Error('Backup inválido ou incompatível com esta versão do Hub LC.');};
   if (!input || input.schemaVersion!==1) fail();
   input={...input,discoveries:input.discoveries===undefined?[]:input.discoveries,documents:input.documents===undefined?[]:input.documents};
-  const collections=['areas','materials','columns','tasks','books','notes','sessions','discoveries','documents'];
+  input={...input,customTerms:input.customTerms??[],hiddenTerms:input.hiddenTerms??[]};
+  const collections=['customTerms','areas','materials','columns','tasks','books','notes','sessions','discoveries','documents'];
   for (const key of collections) if (!Array.isArray(input[key]) || input[key].length>10000) fail();
   const string=(v,max=200000)=>typeof v==='string' && v.length<=max;
   const ids=new Set();
@@ -483,6 +490,9 @@ export function validateState(input) {
     if(!item || !string(item.id,200) || !/^[A-Za-z0-9_-]+$/.test(item.id) || ids.has(item.id)) fail();
     ids.add(item.id);
   }
+  if(!Array.isArray(input.hiddenTerms)||input.hiddenTerms.length>10000||input.hiddenTerms.some(url=>!string(url,4000)||!dictionarySnapshot.terms.some(t=>t.url===url)))fail();
+  for(const t of input.customTerms)if(!string(t.word,500)||!t.word.trim()||!string(t.category,100)||!t.category.trim()||!string(t.meaning)||!t.meaning.trim()||!string(t.comparison)||!string(t.example)||!string(t.url,4000)||(t.url&&!safeUrl(t.url)))fail();
+  for(const b of input.books)if((b.journal!==undefined&&!string(b.journal))||(b.nextStep!==undefined&&!string(b.nextStep,2000)))fail();
   for(const a of input.areas) if(!string(a.name,500)||!a.name.trim()||!string(a.description)||(a.division!==undefined&&(!string(a.division,100)||!a.division.trim()))) fail();
   if(!input.columns.length) fail();
   for(const c of input.columns) if(!string(c.name,500)||!c.name.trim()) fail();

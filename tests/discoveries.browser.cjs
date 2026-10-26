@@ -88,8 +88,36 @@ module.exports=async({browser,origin,out})=>{
     await nav('Áreas');await page.locator('[data-action=open-division][data-division="TI"]').click();
     await page.locator('[data-action=filter-area]').filter({hasText:'APIs'}).click();await page.locator('[data-action=edit-area]').click();await action('delete-record',form);await submit();
     assert.deepEqual((await stored()).discoveries[0].areaIds,[]);
+    await nav('Descobertas');
+    for(const [kind,title] of [['Artigo','Artigo sobre memória'],['Podcast','Podcast sobre memória'],['Outro','Outro conteúdo']]){
+      await page.locator('#capture-form [name=url]').fill('https://example.org/'+kind.toLowerCase());
+      await page.locator('#capture-form [name=title]').fill(title);await page.locator('#capture-form button[type=submit]').click();
+      await action('edit-discovery');await form.locator('[name=kind]').selectOption(kind);await submit();await action('all-discoveries');
+    }
+    const kindFilter=page.locator('[data-filter=discovery-kind]');
+    assert.equal(await page.locator('.discovery-card').count(),4);
+    for(const kind of ['Vídeo','Artigo','Podcast','Outro']){
+      await kindFilter.selectOption(kind);assert.equal(await page.locator('.discovery-card').count(),1);
+      assert.equal(await page.locator('.discovery-card>.badge-row').first().locator('.badge').first().innerText(),kind);
+    }
+    await kindFilter.selectOption('Artigo');await page.reload();assert.equal(await kindFilter.inputValue(),'Artigo');
+    assert.equal(await page.locator('.discovery-card').count(),1);
+    await action('open-discovery');await action('all-discoveries');assert.equal(await kindFilter.inputValue(),'Artigo');
+    await page.locator('[data-query]').fill('inexistente');assert.equal(await page.locator('.discovery-card').count(),0);
+    assert.equal(await page.getByRole('heading',{name:'Nenhuma descoberta nesse filtro'}).count(),1);
+    await action('clear-filters');assert.equal(await kindFilter.inputValue(),'');assert.equal(await page.locator('.discovery-card').count(),4);
+    await kindFilter.selectOption('Vídeo');await page.locator('[data-filter=discovery-status]').selectOption('Guardado');
+    assert.equal(await page.locator('.discovery-card').count(),0);
+    await page.locator('[data-filter=discovery-status]').selectOption('Explorando');assert.equal(await page.locator('.discovery-card').count(),1);
+    await page.locator('[data-filter=area]').selectOption((await stored()).areas.find(a=>a.name==='Java').id);
+    assert.equal(await page.locator('.discovery-card').count(),0);await action('clear-filters');
+    for(const width of [1440,768,360,320]){
+      await page.setViewportSize({width,height:1000});await kindFilter.selectOption('Artigo');
+      assert.equal(await page.locator('.discovery-card').count(),1);
+      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+    }
     assert.deepEqual(errors,[]);
-    return 'descobertas: captura, momentos no vídeo, sugestões e múltiplos temas, notas, quadro, dicionário, duplicatas, backup e exclusões preservando registros; desktop e mobile';
+    return 'descobertas: filtro por tipo com persistência e combinação de busca, situação e tema, captura, momentos no vídeo, sugestões e múltiplos temas, notas, quadro, dicionário, duplicatas, backup e exclusões preservando registros; desktop e mobile';
   }catch(error){await page.screenshot({path:path.join(out,'discovery-failure.png'),fullPage:true});throw error;}
   finally{await context.close();}
 };

@@ -60,3 +60,11 @@ As logos originais estão em `assets/`. A marca no menu segue a referência comp
 ## Histórico de alterações
 
 Veja [CHANGELOG.md](CHANGELOG.md) para a comparação detalhada com a versão inicial publicada no GitHub, incluindo os recursos incorporados nesta atualização e os que continuam pendentes.
+
+### Estudos e leitura individual
+
+Em Estudos, **Tudo** reúne o acervo em seções visuais por tipo. Na aba **Documentos**, use **Todos os tipos** para selecionar uma extensão em conjunto com a busca e o assunto.
+
+No **Dicionário**, **+ Palavra** cadastra termos pessoais; a lixeira remove termos deste acervo local. Inclusões e exclusões acompanham o backup e as conexões com links e vídeos. A base original no Notion permanece independente.
+
+Na biblioteca, **Abrir livro** leva ao espaço individual: guarde a página, o capítulo e o próximo passo em **Onde parei**; escreva no **Caderno de leitura** e crie anotações com referências de página; use **Mural de post-its** para organizar e conectar ideias. O caderno é salvo durante a escrita. A retomada usa **Guardar retomada**. Cada livro mantém seu próprio conteúdo, incluído no backup e na exportação Markdown contextual.

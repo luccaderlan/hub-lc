@@ -57,14 +57,14 @@ const mark=text=>{reports.push(text);console.log('OK:',text);};
     await nav('Sessões');assert.equal(await page.locator('[name=timer-target]').inputValue(),'');assert.equal(await page.locator('[data-clock]').textContent(),'00:00:00');
     mark('primeiro acesso sem cronômetro iniciado, duração imposta ou links ao Bora na Tech');
 
-    await nav('Áreas');await page.locator('.study-sidebar [data-action=new-area]').click();await form.locator('[name=name]').fill('História');await form.locator('[name=description]').fill('Leituras e conexões');await submit();
+    await nav('Áreas');await page.locator('.study-sidebar [data-action=new-area]').click();await form.locator('[name=name]').fill('História');await form.locator('[name=division]').selectOption({label:'Filosofia'});await form.locator('[name=description]').fill('Leituras e conexões');await submit();
     await page.getByRole('heading',{name:'História',exact:true}).waitFor();
     await page.locator('.add-study summary').click();await action('new-material');await form.locator('[name=title]').fill('Minha referência');await form.locator('[name=areaId]').selectOption({label:'História'});await form.locator('[name=url]').fill('javascript:alert(1)');await submit();
     await page.locator('#form-error').filter({hasText:'HTTP'}).waitFor();
     await form.locator('[name=url]').fill('https://example.org/');await submit();
     assert.ok((await stored()).materials.some(m=>m.title==='Minha referência'&&m.areaId));
-    assert.equal((await stored()).areas.find(a=>a.name==='História').division,'Outros');
-    await page.locator('[data-action=edit-area]').click();await form.locator('[name=division]').fill('Humanidades');await submit();
+    assert.equal((await stored()).areas.find(a=>a.name==='História').division,'Filosofia');
+    await page.locator('[data-action=edit-area]').click();await form.locator('[name=division]').selectOption('new');await form.locator('[name=newDivision]').fill('Humanidades');await submit();
     assert.equal((await stored()).areas.find(a=>a.name==='História').division,'Humanidades');
     assert.equal(await page.locator('.material-card').count(),1);
     mark('áreas e conteúdos cadastrados; endereço executável rejeitado');
@@ -231,6 +231,7 @@ const mark=text=>{reports.push(text);console.log('OK:',text);};
     mark(await require('./discoveries.browser.cjs')({browser,origin,out}));
     mark(await require('./documents.browser.cjs')({browser,origin,out}));
     mark(await require('./studies.browser.cjs')({browser,origin,out}));
+    mark(await require('./reading-workspace.browser.cjs')({browser,origin,out}));
     assert.deepEqual(errors,[]);mark('nenhum erro de JavaScript nos fluxos verificados');
     await fs.writeFile(path.join(out,'browser-report.json'),JSON.stringify({reports,errors},null,2));
   }catch(err){await page.screenshot({path:path.join(out,'failure.png'),fullPage:true});throw err;}

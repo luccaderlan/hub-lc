@@ -11,9 +11,29 @@ module.exports=async({browser,origin,out})=>{
   const download=async click=>{const pending=page.waitForEvent('download');await click();const file=await pending;return fs.readFile(await file.path());};
   try{
     await page.goto(origin+'/#areas');assert.equal(await page.locator('[aria-label="Navegação principal"] [data-view]').count(),5);
-    await page.locator('.study-sidebar [data-action=new-area]').click();await page.locator('[name=name]').fill('Escrita criativa');await page.locator('[name=division]').fill('');await submit();
-    const area=(await stored()).areas.find(a=>a.name==='Escrita criativa');assert.equal(area.division,'Outros');
-    await action('edit-area');await page.locator('[name=division]').fill('Criação');await submit();
+    await page.locator('.study-sidebar [data-action=new-area]').click();await page.locator('[name=name]').fill('Escrita criativa');await page.locator('[name=division]').selectOption('');await submit();
+    assert.equal(await page.locator('[name=division]').evaluate(el=>el.validity.valueMissing),true);
+    assert.equal(((await stored())?.areas||[]).some(a=>a.name==='Escrita criativa'),false);
+    assert.equal(await page.locator('[name=division]').evaluate(el=>el.tagName),'SELECT');
+    assert.equal(await page.locator('[name=newDivision]').isVisible(),false);
+    await page.locator('[name=division]').selectOption('new');await submit();
+    assert.equal(await page.locator('[name=newDivision]').evaluate(el=>el.validity.valueMissing),true);
+    for(const invalid of ['   ','Outros']){
+      await page.locator('[name=newDivision]').fill(invalid);await submit();
+      await page.locator('#form-error').filter({hasText:'Informe o nome da nova área'}).waitFor();
+      assert.equal(((await stored())?.areas||[]).some(a=>a.name==='Escrita criativa'),false);
+    }
+    await page.locator('[name=division]').selectOption({label:'Filosofia'});
+    assert.equal(await page.locator('[name=newDivision]').isVisible(),false);
+    assert.equal(await page.locator('[name=newDivision]').isDisabled(),true);await submit();
+    const area=(await stored()).areas.find(a=>a.name==='Escrita criativa');assert.equal(area.division,'Filosofia');
+    await action('edit-area');assert.equal(await page.locator('[name=division] option:checked').innerText(),'Filosofia');
+    await page.locator('[name=division]').selectOption('new');await page.locator('[name=newDivision]').fill(' Criação ');await submit();
+    assert.equal((await stored()).areas.find(a=>a.id===area.id).division,'Criação');
+    await page.locator('.study-sidebar [data-action=new-area]').click();await page.locator('[name=name]').fill('Narrativa');
+    await page.locator('[name=division]').selectOption({label:'Criação'});await submit();
+    assert.equal((await stored()).areas.find(a=>a.name==='Narrativa').division,'Criação');
+    await page.locator(`[data-action=filter-area][data-id="${area.id}"]`).click();
     await page.locator('[data-action=rename-collection][data-division="Criação"]').click();await page.locator('[name=name]').fill('Laboratório');await submit();
     assert.equal((await stored()).areas.find(a=>a.id===area.id).division,'Laboratório');
     await page.locator('.add-study summary').click();await action('new-material');await page.locator('[name=title]').fill('Técnicas de escrita');await page.locator('[name=url]').fill('https://example.org/escrita');await submit();
@@ -49,7 +69,30 @@ module.exports=async({browser,origin,out})=>{
     try{await fresh.goto(origin);await fresh.locator('#import-file').setInputFiles({name:'estudos.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(backup))});await fresh.locator('#editor-form [type=submit]').click();await fresh.getByRole('heading',{name:'O que te move hoje?'}).waitFor();await navigate(fresh,'documents');await fresh.locator(`[data-action=open-document][data-id="${doc.id}"]`).click();await fresh.locator('[data-document-text]').waitFor();assert.equal(await fresh.locator('[data-document-text]').innerText(),original.toString());assert.equal(await fresh.evaluate(()=>JSON.parse(localStorage.getItem('hub-lc:v1')).notes[0].videoUrl),'https://www.youtube.com/watch?v=escrita');}finally{await restored.close();}
     await page.setViewportSize({width:1440,height:1000});await navigate(page,'areas');await page.locator(`[data-action=filter-area][data-id="${area.id}"]`).click();await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));await page.locator('#toast').evaluate(el=>el.classList.remove('visible'));await page.screenshot({path:path.join(out,'studies-final-desktop.png'),fullPage:true});
     await page.setViewportSize({width:360,height:900});await page.screenshot({path:path.join(out,'studies-final-mobile.png'),fullPage:true});
+    await page.setViewportSize({width:1440,height:1000});
+    await page.locator('[data-action=rename-collection][data-division="Laboratório"]').click();await action('delete-record');
+    await submit();assert.equal(await page.locator('[name=destination]').evaluate(el=>el.validity.valueMissing),true);
+    await action('close-dialog');assert.equal((await stored()).areas.find(a=>a.id===area.id).division,'Laboratório');
+    await page.locator('[data-action=rename-collection][data-division="Laboratório"]').click();await action('delete-record');
+    await page.locator('[name=destination]').selectOption({label:'Mover para Filosofia'});await submit();
+    assert.equal((await stored()).areas.find(a=>a.id===area.id).division,'Filosofia');
+    assert.equal((await stored()).documents.find(d=>d.id===doc.id).areaId,area.id);
+    assert.equal(await page.locator('[data-action=open-division][data-division="Laboratório"]').count(),0);
+    const beforeDelete=await stored(),removedIds=beforeDelete.areas.filter(a=>a.division==='Filosofia').map(a=>a.id);
+    await page.locator('[data-action=rename-collection][data-division="Filosofia"]').click();await action('delete-record');
+    await page.locator('[name=destination]').selectOption('delete');await submit();await page.reload();
+    const afterDelete=await stored();assert.equal(afterDelete.areas.some(a=>removedIds.includes(a.id)),false);
+    for(const list of ['materials','documents','notes','books','tasks','sessions']){
+      assert.equal(afterDelete[list].length,beforeDelete[list].length);
+      assert.equal(afterDelete[list].some(item=>removedIds.includes(item.areaId)),false);
+    }
+    assert.equal(afterDelete.discoveries.some(d=>d.areaIds.some(id=>removedIds.includes(id))),false);
+    assert.equal(removedIds.includes(afterDelete.timer.areaId),false);
+    assert.equal(await page.locator('[data-action=open-division][data-division="Filosofia"]').count(),0);
+    await page.locator('.study-sidebar [data-action=new-area]').click();
+    assert.equal(await page.locator('[name=division] option').filter({hasText:/^Filosofia$/}).count(),0);
+    await action('close-dialog');
     assert.deepEqual(errors,[]);
-    return 'estudos: cinco destinos, coleções livres, fontes reunidas, arquivos MD/TXT/CSV/Word/imagem, prévias seguras, vínculo direto a vídeo, exportação Markdown contextual e restauração completa';
+    return 'estudos: cinco destinos, área obrigatória com seleção ou criação, fontes reunidas, arquivos MD/TXT/CSV/Word/imagem, prévias seguras, vínculo direto a vídeo, exportação Markdown contextual e restauração completa';
   }catch(err){await page.screenshot({path:path.join(out,'studies-failure.png'),fullPage:true});throw err;}finally{await context.close();}
 };
