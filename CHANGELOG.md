@@ -1,5 +1,37 @@
 # Histórico de alterações
 
+## 27/10/2026 — jogos contra bots em Pausa e Puzzle
+
+- Escolha entre Desvio, jogo da velha, dama brasileira e xadrez, com três dificuldades e uma partida salva por jogo. O acesso e o resultado preservam o estado da sessão.
+- Regras locais separadas da interface: maior captura e sequências na dama; xadrez com roque, en passant, promoção escolhida e finais, usando chess.js 1.4.0 sob BSD-2-Clause. O jogo da velha difícil joga de forma ótima.
+- Bots em Web Workers com limites de busca, cancelamento ao sair/reiniciar/restaurar e rejeição de respostas antigas. Interface por clique, toque e teclado, com destinos e resultados acessíveis, em ambos os temas.
+- Backups completos e só de registros incluem as partidas. Validação reexecuta as jogadas e rejeita dados ilegais antes de substituir registros; backups antigos recebem jogos sem partidas. A proteção de pausa ao importar continua ativa.
+- Testes de regras, persistência, promoção, sequências de captura, três níveis, bots atrasados, teclado/toque e layout de 320 a 1440 px, além das regressões existentes.
+
+## 27/10/2026 — escala compacta e barra lateral recolhível
+
+- Tipografia, dimensões e espaçamentos do desktop reduzidos em aproximadamente 10%, preservando campos de 16 px e alvos de toque móveis. A página não usa zoom ou transformação que altere as coordenadas do mural e da seleção de texto.
+- Barra lateral com alternância entre menu completo e faixa de 64 px com ícones, rótulos acessíveis e tooltips, inspirada nas referências do ChatGPT. No celular, a faixa horizontal também alterna para ícones.
+- A escolha persiste ao trocar de seção e recarregar, sem modificar o backup dos registros. Alternar não recria o editor, preservando o texto e o estado dos espaços de trabalho.
+- Verificação de teclado, foco, persistência e navegação em 12 telas, temas claro/escuro e larguras entre 320 e 1440 px nos dois estados da barra.
+
+## 27/10/2026 — caderno digital editorial
+
+- Visual das referências aplicado à navegação, estudos, documentos, links, livros, dicionário, quadro, anotações, murais, sessões, puzzle e preferências: papel claro, títulos serifados, linhas finas e menos caixas; versão escura correspondente.
+- Página inicial com saudação, assuntos e coleções reais, retomada da sessão ou assunto, anotações recentes, ideia amarela e atividades em andamento. Banner e frases promocionais removidos.
+- Captura rápida salva como anotação normal. Retomada abre o assunto ou a sessão ativa; anotações podem ser filtradas pelo assunto, incluindo vínculos via referências, arquivos e descobertas. Concluir na página inicial move a atividade para a coluna Concluído do quadro.
+- Nome Lucca centralizado no perfil e editável nas preferências, com compatibilidade com backups antigos. Preparação do campo de nome para integração futura com conta.
+- Camada `editorial.css` servida e carregada em todas as telas, com controles móveis, teclado e foco preservados. Testes de integração dos novos atalhos e regressão do acervo existente.
+
+## 27/10/2026 — Pausa e Puzzle
+
+- Desvio reúne seis tabuleiros 3 × 3 com entrada/saída, pistas sem penalidade, giro por clique/toque/teclado e conclusão discreta. Outra rodada depende de escolha; o tabuleiro é preservado ao sair, recarregar ou retomar o estudo.
+- Acesso apenas dentro de Sessões, sem exigir ou criar registros de estudo. Uma sessão ativa permanece contando até a pessoa pausá-la explicitamente.
+- Pausas livres com lembrete opcional, editável e removível. Durações começam vazias; os avisos de estudo/pausa não trocam de etapa, não fecham o jogo e não se repetem a cada atualização.
+- Lembretes usam horário de término persistido, incluindo retorno de aba inativa ou fechada. Descanso nunca aumenta o tempo estudado. No celular, o estado e o lembrete aparecem também junto do tabuleiro.
+- Backup inclui tabuleiro e novos campos do cronômetro; migração mantém o esquema e os registros existentes. O módulo local `puzzle.js` não usa bibliotecas, rede ou conteúdo do dicionário.
+- Testes de lógica, solução/pistas, migração, persistência, backup e acessibilidade; revisão do puzzle em dois temas entre 320 e 1440 px e execução da suíte de regressão dos demais espaços.
+
 ## 26/10/2026 — estudos organizados e espaço de leitura
 
 - A opção Tudo em Estudos apresenta Referências, Documentos, Links e vídeos e Anotações em seções consecutivas, com títulos, contadores e separadores. Os filtros individuais continuam disponíveis.

@@ -97,6 +97,8 @@ Ao encerrar: oferecer um registro breve do que foi feito, dúvidas e próximo pa
 
 Pausas registradas não contam como tempo estudado. Não haverá sugestão automática de dividir as quatro horas disponíveis entre tipos de estudo. O planejamento pode ser usado somente como uma lista de intenções, sem horários.
 
+Primeira implementação concluída em 27/10/2026, conforme a proposta: [Pausas livres e puzzle](PROPOSTA-PAUSA-E-PUZZLE.md). Descreve uma brincadeira de caminhos e sua integração opcional ao cronômetro, com tempos escolhidos pela pessoa, lembretes facultativos e retomada explícita do estudo. Não há durações preenchidas, ciclos impostos ou vínculo com o Dicionário DEV.
+
 ### Evolução
 
 Separar dedicação (tempo e distribuição por matéria, quando registrados), execução (atividades planejadas e realizadas, quando houver planejamento) e aprendizagem (exercícios, implementações e explicações produzidas). O usuário pode ocultar métricas e selecionar quais evidências considera úteis. Não exigir sequências de dias nem aplicar penalidades por ausência.

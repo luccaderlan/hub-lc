@@ -215,3 +215,28 @@ dialog{border-radius:18px;border-color:var(--line);box-shadow:0 32px 100px #1513
 
 .reading-summary .reading-book-title{font-family:var(--display);font-size:26px;line-height:1.4;letter-spacing:-.7px;margin:18px 0 7px;overflow-wrap:anywhere}.reading-summary .reading-book-author{margin:0 0 14px}
 @media(max-width:600px){.reading-summary .reading-book-title{font-size:19px;letter-spacing:-.4px}}
+
+/* Pausas livres e Desvio: estilos limitados a estes componentes. */
+.pause-options{border-top:1px solid var(--line);padding-top:20px;margin-top:20px;text-align:left;width:100%}
+.pause-options h3{font-size:15px}.pause-options p{font-size:12px;margin:8px 0 14px}
+.pause-options .button-row{justify-content:flex-start}.pause-reminder{color:var(--accent-ink);font-variant-numeric:tabular-nums}
+.puzzle-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(260px,1fr);gap:24px;align-items:start}
+.puzzle-play,.puzzle-aside{min-width:0}.puzzle-aside{display:grid;gap:20px}.puzzle-play h2{font-size:23px}.puzzle-play>.muted{font-size:13px;margin-top:14px}
+.puzzle-turn-icon{display:grid;place-items:center;width:40px;height:40px;font-size:27px;border-radius:12px;background:var(--soft);color:var(--accent-ink)}
+.puzzle-board-wrap{padding:32px 42px}.puzzle-board{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,1fr);gap:7px;max-width:360px;margin:auto;isolation:isolate}
+.puzzle-tile{position:relative;display:block;width:100%;aspect-ratio:1;min-width:0;min-height:44px;padding:0;border:2px solid var(--control-line);border-radius:13px;background:var(--elevated);color:var(--muted);cursor:pointer;touch-action:manipulation}
+.puzzle-tile:hover{border-color:var(--accent);background:var(--soft)}.puzzle-tile svg{display:block;width:100%;height:100%;overflow:hidden;border-radius:10px}
+.puzzle-pipe{transform-origin:50px 50px}.puzzle-track,.puzzle-line{fill:none;stroke-linecap:butt;stroke-linejoin:round}.puzzle-track{stroke:var(--surface);stroke-width:24}.puzzle-line{stroke:currentColor;stroke-width:5;stroke-dasharray:7 5}
+.puzzle-tile.connected{color:var(--accent-ink);border-color:var(--accent);background:var(--soft)}.puzzle-tile.connected .puzzle-line{stroke-dasharray:none;stroke-width:7}
+.puzzle-connected-mark{position:absolute;left:5px;bottom:0;line-height:16px;font-size:24px;color:var(--accent-ink)}
+.puzzle-tile.hinted{outline:2px dashed var(--heading);outline-offset:3px}.puzzle-hint-marker{position:absolute;top:3px;left:3px;background:var(--heading);color:var(--surface);font-size:9px;border-radius:4px;padding:1px 4px}
+.puzzle-endpoint{position:absolute;z-index:1;font-size:10px;font-weight:600;color:var(--heading);width:38px;line-height:1.5;text-align:center;pointer-events:none}
+.puzzle-endpoint span{display:block;white-space:nowrap}.puzzle-entry{left:0;transform:translate(-42px,-50%)}.puzzle-exit{right:0;transform:translate(42px,-50%)}
+.puzzle-result{min-height:44px;font-size:13px;margin-bottom:18px;color:var(--accent-ink)}.puzzle-actions{flex-wrap:wrap}.puzzle-play>.note-status{margin-top:18px}
+.puzzle-session h2,.puzzle-guide h2{font-size:18px}.puzzle-study-clock{font:28px var(--display);font-variant-numeric:tabular-nums;margin:18px 0}.puzzle-guide p,.puzzle-session>.muted{font-size:12px;line-height:1.9;margin-top:12px}
+.puzzle-session .timer-hint{margin-bottom:18px}.puzzle-session .btn{min-height:44px}
+@media(prefers-reduced-motion:no-preference){.puzzle-pipe{transition:transform .15s ease}.puzzle-board.solved{animation:puzzle-complete .45s ease}@keyframes puzzle-complete{50%{transform:scale(1.025)}}}
+@media(max-width:1050px){.puzzle-layout{grid-template-columns:minmax(0,1fr)}.puzzle-aside{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.puzzle-aside{grid-template-columns:minmax(0,1fr)}.puzzle-play{padding:16px}.puzzle-board-wrap{padding:30px 36px}.puzzle-entry{transform:translate(-36px,-50%)}.puzzle-exit{transform:translate(36px,-50%)}.puzzle-endpoint{width:32px;font-size:9px}.puzzle-board{gap:5px}.puzzle-tile{border-radius:9px}.puzzle-actions .btn{min-height:44px}.pause-options .btn{min-height:44px}}
+.puzzle-session-strip{display:none}
+@media(max-width:1050px){.puzzle-session-strip{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:12px;margin-top:18px;background:var(--soft);border-radius:9px;color:var(--accent-ink)}.puzzle-session-strip strong{font-size:12px}.puzzle-session-strip p{font-size:11px;margin:4px 0 0}.puzzle-session-strip .btn{font-size:12px;min-height:44px}}

@@ -5,7 +5,7 @@ module.exports=async({browser,origin,out})=>{
   const action=name=>page.locator(`[data-action="${name}"]:visible`).first().click(),submit=()=>page.locator('#editor-form button[type=submit]').click(),stored=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('hub-lc:v1')));
   const note=async kind=>(await stored()).notes.find(n=>n.kind===kind);
   const selectText=async(start,end)=>{const editor=page.locator('#note-body');await editor.focus();await page.keyboard.press('Control+Home');for(let i=0;i<start;i++)await page.keyboard.press('ArrowRight');await page.keyboard.down('Shift');for(let i=start;i<end;i++)await page.keyboard.press('ArrowRight');await page.keyboard.up('Shift');await page.locator('.selection-tools').waitFor({state:'visible'});};
-  const mark=async color=>{await action('marker-palette');if(color==='yellow')await page.screenshot({path:out+'/hub-lc-marker-palette.png',fullPage:true});await page.locator(`[data-color="${color}"]`).click();};
+  const mark=async color=>{await action('marker-palette');if(color==='yellow')await page.screenshot({path:out+'/hub-lc-marker-palette.png',fullPage:false});await page.locator(`[data-color="${color}"]`).click();};
   const drag=async(locator,dx,dy)=>{await locator.scrollIntoViewIfNeeded();const box=await locator.boundingBox();assert.ok(box);await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();await page.mouse.move(box.x+box.width/2+dx,box.y+box.height/2+dy,{steps:8});await page.mouse.up();};
   const dragBetween=async(source,target)=>{const a=await source.boundingBox(),b=await target.boundingBox();await page.mouse.move(a.x+a.width/2,a.y+a.height/2);await page.mouse.down();await page.mouse.move(b.x+b.width/2,b.y+b.height/2,{steps:10});await page.mouse.up();};
   try{

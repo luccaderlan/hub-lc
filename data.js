@@ -1,4 +1,6 @@
 import {inspectDocument,documentFormat} from './documents.js';
+import {createPuzzle,validPuzzle} from './puzzle.js';
+import {createGames,validGames} from './games.js';
 export {inspectDocument,documentFormat} from './documents.js';
 export const STORAGE_KEY = 'hub-lc:v1';
 // Cópia do Dicionário DEV consultada em 13/10/2026. Notion permanece a origem.
@@ -340,9 +342,37 @@ export const dictionarySnapshot = {
   ]
 };
 export const DEFAULT_DIVISIONS = ['TI','Filosofia','Neurociência','Espiritualidade','Outros'];
+export const TI_STUDY_GROUPS = [
+  {name:'Fundamentos e ferramentas',subjects:['Java','Maven','APIs']},
+  {name:'Arquitetura e design',subjects:['Arquitetura de software','Design Patterns','Microsserviços']},
+  {name:'Spring',subjects:['Spring Boot','Spring Security']},
+  {name:'Persistência de dados',subjects:['PostgreSQL','Spring Data JPA Specifications']},
+  {name:'Qualidade e testes',subjects:['Testes unitários','Testes de integração']},
+  {name:'Infraestrutura e containers',subjects:['Docker']}
+];
+const additionalTiSubjects = [
+  ['Arquitetura de software','Responsabilidades, camadas, coesão, acoplamento e decisões de arquitetura.'],
+  ['Design Patterns','Padrões de criação, estrutura e comportamento; aplicação e critérios de escolha.'],
+  ['Microsserviços','Limites de serviços, comunicação, consistência de dados, resiliência e observabilidade.'],
+  ['Spring Security','Autenticação, autorização e proteção de aplicações e APIs com Spring.'],
+  ['Spring Data JPA Specifications','Consultas dinâmicas com Specification, predicados e composição de filtros no Spring Data JPA.'],
+  ['Testes unitários','Testes isolados de regras e componentes, cenários de borda, JUnit e Mockito.'],
+  ['Testes de integração','Integração entre componentes, APIs e banco de dados; testes com Spring Boot e Testcontainers.'],
+  ['Docker','Imagens, containers, Dockerfile, volumes, redes e Docker Compose.']
+];
+function addTiStudySubjects(state) {
+  if(state.tiStudyTopicsVersion===1)return state;
+  const key=name=>name.trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const names=new Set(state.areas.map(a=>key(a.name)));
+  for(const [name,description] of additionalTiSubjects){
+    if(!names.has(key(name))){state.areas.push({id:uid(),name,division:'TI',description});names.add(key(name));}
+  }
+  state.tiStudyTopicsVersion=1;
+  return state;
+}
 export function divisionFor(area) {
   if (area.division !== undefined) return area.division;
-  if (['Java','Maven','Spring Boot','APIs','PostgreSQL'].includes(area.name)) return 'TI';
+  if (TI_STUDY_GROUPS.some(group=>group.subjects.includes(area.name))) return 'TI';
   if (['Filosofia','Neurociência','Espiritualidade'].includes(area.name)) return area.name;
   return 'Outros';
 }
@@ -354,18 +384,20 @@ export const today = () => {
 export function createInitial() {
   const areas = ['Java','Maven','Spring Boot','APIs','PostgreSQL','Neurociência','Filosofia','Espiritualidade'].map(name => ({ id:uid(),name,division:divisionFor({name}),description:name==='Espiritualidade'?'Despertar espiritual, autoconhecimento e reflexões pessoais.':'' }));
   const material = (title,name,url,kind='Documentação') => ({id:uid(),title,areaId:areas.find(a=>a.name===name).id,url,kind,description:'Referência inicial. Você pode editar ou remover.'});
-  return {
+  return addTiStudySubjects({
     schemaVersion:1, areas,
     materials:[material('Aprender Java','Java','https://dev.java/learn/'),material('Guias do Maven','Maven','https://maven.apache.org/guides/'),material('Guias do Spring','Spring Boot','https://spring.io/guides/'),material('Tutorial do PostgreSQL','PostgreSQL','https://www.postgresql.org/docs/current/tutorial.html')],
     columns:['Ideias','Em andamento','Para revisar','Concluído'].map(name=>({id:uid(),name})),tasks:[],
     customTerms:[],hiddenTerms:[],
     books:[['O espírito do guerreiro','Steven Pressfield'],['A arte da Guerra','Sun Tzu']].map(([title,author])=>({id:uid(),title,author,status:'',page:'',total:'',chapter:'',areaId:''})),
     notes:[],sessions:[],discoveries:[],documents:[],
-    timer:{running:false,areaId:'',bookId:'',startedAt:null,elapsedMs:0,targetMinutes:''},
-    prefs:{theme:'light',accent:'lc',showMetrics:true},
+    timer:{running:false,areaId:'',bookId:'',startedAt:null,elapsedMs:0,targetMinutes:'',targetNotified:false,mode:'stopwatch',deadline:null,alertDismissed:false,pause:emptyPause()},
+    puzzle:createPuzzle(),
+    games:createGames(),
+    prefs:{theme:'light',accent:'lc',showMetrics:true,displayName:'Lucca'},
     dictionaryUrl:'https://app.notion.com/p/20cd91979b44489d96ffa4fe7b6c6c79?pvs=204',
     updatedAt:new Date().toISOString()
-  };
+  });
 }
 export function safeUrl(value) {
   if (!value) return '';
@@ -467,7 +499,43 @@ export function timerElapsed(timer, now=Date.now()) {
   return Math.max(0, timer.elapsedMs + (timer.running ? Math.max(0,now-timer.startedAt) : 0));
 }
 export function pauseTimer(timer, now=Date.now()) {
-  return {...timer,elapsedMs:timerElapsed(timer,now),startedAt:null,running:false};
+  return {...timer,elapsedMs:timerElapsed(timer,now),startedAt:null,running:false,pause:timer.running?{...emptyPause(),startedAt:now}:(timer.pause||emptyPause())};
+}
+export function emptyPause(){return {startedAt:null,minutes:'',endsAt:null,notified:false};}
+export function resumeTimer(timer,now=Date.now()){
+  timer=completeTimer(timer,now);
+  if(timerFinished(timer,now))timer={...timer,mode:'stopwatch',targetMinutes:'',deadline:null,targetNotified:false,alertDismissed:false};
+  return timer.running?timer:{...timer,running:true,startedAt:now,pause:emptyPause()};
+}
+export function resetTimer(timer){
+  return {...timer,running:false,startedAt:null,elapsedMs:0,targetNotified:false,deadline:null,alertDismissed:false,pause:emptyPause()};
+}
+export function setPauseReminder(timer,minutes,now=Date.now()){
+  if(timer.running||timer.pause?.startedAt==null)throw new Error('Pause a sessão antes de definir um lembrete.');
+  if(typeof minutes!=='string'||(minutes!==''&&(!Number.isInteger(Number(minutes))||Number(minutes)<1||Number(minutes)>1000000)))throw new Error('Informe uma duração entre 1 e 1000000 minutos.');
+  return {...timer,pause:{...timer.pause,minutes,endsAt:minutes===''?null:now+Number(minutes)*60000,notified:false}};
+}
+export function timerDisplay(timer,now=Date.now()){
+  if(timer.mode==='deadline')return Math.max(0,(timer.deadline??now)-now);
+  if(timer.mode==='countdown')return Math.max(0,Number(timer.targetMinutes)*60000-timerElapsed(timer,now));
+  return timerElapsed(timer,now);
+}
+// Settle at the actual limit, even when a background tab wakes up late.
+export function timerFinished(timer,now=Date.now()){
+  return ['countdown','deadline'].includes(timer.mode)&&(timer.running||timer.elapsedMs>0||timer.pause?.startedAt!=null)&&(timer.mode==='deadline'?timer.deadline!==null:!!timer.targetMinutes)&&timerDisplay(timer,now)===0;
+}
+export function completeTimer(timer,now=Date.now()){
+  if(!timer.running||!timerFinished(timer,now))return timer;
+  const elapsed=timerElapsed(timer,now);
+  const elapsedMs=timer.mode==='countdown'?Number(timer.targetMinutes)*60000:timerElapsed(timer,Math.min(now,timer.deadline));
+  const endedAt=timer.mode==='countdown'?now-Math.max(0,elapsed-elapsedMs):timer.deadline;
+  return {...timer,running:false,startedAt:null,elapsedMs,pause:{...emptyPause(),startedAt:endedAt}};
+}
+export function timerNotices(timer,now=Date.now()){
+  return {
+    study:!timer.targetNotified&&(timer.mode==='deadline'?timer.deadline!=null&&(timer.running||timer.elapsedMs>0||timer.pause?.startedAt!=null)&&now>=timer.deadline:!!timer.targetMinutes&&timerElapsed(timer,now)>=Number(timer.targetMinutes)*60000),
+    pause:!timer.running&&timer.pause?.endsAt!=null&&!timer.pause.notified&&now>=timer.pause.endsAt
+  };
 }
 export function percentages(sessions) {
   const total=sessions.reduce((sum,s)=>sum+s.minutes,0);
@@ -480,6 +548,7 @@ export function percentages(sessions) {
 export function validateState(input) {
   const fail=()=>{throw new Error('Backup inválido ou incompatível com esta versão do Hub LC.');};
   if (!input || input.schemaVersion!==1) fail();
+  if(input.tiStudyTopicsVersion!==undefined&&input.tiStudyTopicsVersion!==1)fail();
   input={...input,discoveries:input.discoveries===undefined?[]:input.discoveries,documents:input.documents===undefined?[]:input.documents};
   input={...input,customTerms:input.customTerms??[],hiddenTerms:input.hiddenTerms??[]};
   const collections=['customTerms','areas','materials','columns','tasks','books','notes','sessions','discoveries','documents'];
@@ -540,14 +609,29 @@ export function validateState(input) {
   const t=input.timer,p=input.prefs;
   if(!t||typeof t.running!=='boolean'||!ref(t.areaId,areaIds)||!ref(t.bookId,bookIds)||!Number.isFinite(t.elapsedMs)||t.elapsedMs<0||!numberText(t.targetMinutes)||(t.targetMinutes!==''&&Number(t.targetMinutes)<=0)||!(t.startedAt===null||Number.isFinite(t.startedAt))||(t.running&&t.startedAt===null)) fail();
   if(!p||!['light','dark','system'].includes(p.theme)||!['lc','petroleum','jade','plum'].includes(p.accent)||typeof p.showMetrics!=='boolean'||!string(input.dictionaryUrl,4000)||(input.dictionaryUrl&&!safeUrl(input.dictionaryUrl))||!string(input.updatedAt,100)) fail();
+  if(p.displayName!==undefined&&!string(p.displayName,100))fail();
   const checked=structuredClone(input);
+  if(checked.puzzle===undefined)checked.puzzle=createPuzzle();
+  if(!validPuzzle(checked.puzzle))fail();
+  if(checked.games===undefined)checked.games=createGames();
+  if(!validGames(checked.games))fail();
+  const timer=checked.timer;
+  if(timer.targetNotified===undefined)timer.targetNotified=false;
+  if(timer.mode===undefined)timer.mode='stopwatch';
+  if(timer.deadline===undefined)timer.deadline=null;
+  if(timer.alertDismissed===undefined)timer.alertDismissed=false;
+  if(!['stopwatch','countdown','deadline'].includes(timer.mode)||typeof timer.alertDismissed!=='boolean'||!(timer.deadline===null||(Number.isSafeInteger(timer.deadline)&&timer.deadline>=0&&timer.deadline<=8640000000000000)))fail();
+  if(timer.pause===undefined)timer.pause={...emptyPause(),startedAt:!timer.running&&timer.elapsedMs>0?Date.now():null};
+  const pause=timer.pause;
+  const timestamp=value=>Number.isSafeInteger(value)&&value>=0&&value<=8640000000000000;
+  if(typeof timer.targetNotified!=='boolean'||!pause||typeof pause.notified!=='boolean'||!string(pause.minutes,30)||(pause.minutes!==''&&(!Number.isInteger(Number(pause.minutes))||Number(pause.minutes)<1||Number(pause.minutes)>1000000))||!(pause.startedAt===null||timestamp(pause.startedAt))||!(pause.endsAt===null||timestamp(pause.endsAt))||(timer.running&&pause.startedAt!==null)||(pause.startedAt===null&&(pause.minutes!==''||pause.endsAt!==null||pause.notified))||(pause.minutes===''&&(pause.endsAt!==null||pause.notified))||(pause.minutes!==''&&pause.endsAt===null))fail();
   checked.prefs.accent='lc';
   for(const area of checked.areas) area.division=divisionFor(area);
   return checked;
 }
 export function readState(storage) {
   const raw=storage.getItem(STORAGE_KEY);
-  return raw ? validateState(JSON.parse(raw)) : createInitial();
+  return raw ? validateState(addTiStudySubjects(validateState(JSON.parse(raw)))) : createInitial();
 }
 export function writeState(storage,state) {
   const checked=validateState(state);

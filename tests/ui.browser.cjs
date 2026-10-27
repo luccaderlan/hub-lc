@@ -13,7 +13,7 @@ module.exports=async({browser,origin,out})=>{
         await page.setViewportSize({width,height:1050});
         for(const view of ['home','areas','documents','discoveries','board','books','notes','sessions','evolution','dictionary','settings']){
           await nav(view);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`${view}: overflow ${theme} ${width}`);
-          if(view==='home'){assert.equal(await page.locator('.hero-card').evaluate(el=>getComputedStyle(el).borderLeftWidth), '1px');}
+          if(view==='home'){assert.equal(await page.locator('.home-editorial').count(),1);assert.equal(await page.locator('.hero-card').count(),0);}
           if(view==='sessions'){
             const count=await page.locator('.session-clock-face svg').count();assert.equal(count,1);assert.equal(await page.locator('.timer-card [data-clock]').count(),0);
             const left=await page.locator('.timer-card').boundingBox(),clock=await page.locator('.session-clock-panel').boundingBox();if(width===1440)assert.ok(clock.x>left.x+left.width);else assert.ok(clock.y>left.y+left.height);

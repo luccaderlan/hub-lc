@@ -41,6 +41,28 @@ test('leitura de registros corrompidos falha preservando o arquivo original',()=
   const raw='{quebrado';let writes=0;assert.throws(()=>readState({getItem:()=>raw,setItem:()=>writes++}));assert.equal(writes,0);
 });
 
+test('atualização de TI inclui assuntos em cadastros antigos sem duplicar ou restaurar exclusões',()=>{
+  const old=createInitial();
+  delete old.tiStudyTopicsVersion;
+  old.areas=old.areas.filter(a=>['Java','Maven','Spring Boot','APIs','PostgreSQL','Neurociência','Filosofia','Espiritualidade'].includes(a.name));
+  old.areas.push({id:'docker-pessoal',name:'docker',division:'Minha coleção',description:'Meus containers'});
+  const original=structuredClone(old);
+  let raw=JSON.stringify(old);
+  const storage={getItem:()=>raw,setItem:(key,value)=>{raw=value;}};
+  const migrated=readState(storage);
+  assert.equal(migrated.areas.filter(a=>a.name.toLowerCase()==='docker').length,1);
+  assert.deepEqual(migrated.areas.find(a=>a.id==='docker-pessoal'),old.areas.at(-1));
+  assert.ok(migrated.areas.some(a=>a.name==='Testes unitários'&&a.division==='TI'));
+  assert.ok(migrated.areas.some(a=>a.name==='Testes de integração'&&a.division==='TI'));
+  assert.equal(migrated.areas.filter(a=>a.name==='Spring Boot').length,1);
+  for(const area of old.areas)assert.deepEqual(migrated.areas.find(a=>a.id===area.id),area);
+  assert.deepEqual(migrated.materials,old.materials);
+  assert.deepEqual(old,original);
+  migrated.areas=migrated.areas.filter(a=>a.name!=='Microsserviços');
+  writeState(storage,migrated);
+  assert.deepEqual(readState(storage),migrated);
+});
+
 test('backups anteriores recebem divisões sem perder IDs, vínculos ou dados pessoais',()=>{
   const old=createInitial();
   old.areas.forEach(a=>delete a.division);
@@ -168,4 +190,12 @@ test('mural e post-its preservam dimensões no backup e aceitam dados antigos',(
   assert.deepEqual(validateState(JSON.parse(JSON.stringify(s))).notes,s.notes);
   for(const mutate of [n=>n.canvas.width=0,n=>n.canvas.height=8001,n=>n.canvas=null,n=>n.canvas.width='900',n=>n.stickies[0].width=179,n=>n.stickies[0].height=159,n=>n.stickies[0].width=Infinity,n=>n.stickies[0].height=1001]){const copy=structuredClone(s);mutate(copy.notes[0]);assert.throws(()=>validateState(copy));}
   const old=structuredClone(s);delete old.notes[0].canvas;delete old.notes[0].stickies[0].width;delete old.notes[0].stickies[0].height;assert.doesNotThrow(()=>validateState(old));
+});
+
+test('nome do perfil preserva backups antigos e valida o campo opcional',()=>{
+  const s=createInitial();assert.equal(s.prefs.displayName,'Lucca');
+  s.prefs.displayName='Ana';assert.equal(validateState(s).prefs.displayName,'Ana');
+  delete s.prefs.displayName;assert.doesNotThrow(()=>validateState(s));
+  s.prefs.displayName=42;assert.throws(()=>validateState(s));
+  s.prefs.displayName='A'.repeat(101);assert.throws(()=>validateState(s));
 });

@@ -2,8 +2,9 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const root = __dirname;
-const allowed = new Set(['index.html', 'styles.css', 'app.js', 'data.js', 'documents.js', 'study-export.js', 'redesign.css', 'assets/fonts/fonts.css', 'assets/fonts/dm-sans-latin.woff2', 'assets/fonts/dm-sans-latin-ext.woff2', 'assets/fonts/sora-latin.woff2', 'assets/fonts/sora-latin-ext.woff2']);
-const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.woff2': 'font/woff2' };
+const allowed = new Set(['index.html', 'styles.css', 'app.js', 'data.js', 'puzzle.js', 'documents.js', 'study-export.js', 'redesign.css', 'editorial.css', 'assets/fonts/fonts.css', 'assets/fonts/dm-sans-latin.woff2', 'assets/fonts/dm-sans-latin-ext.woff2', 'assets/fonts/sora-latin.woff2', 'assets/fonts/sora-latin-ext.woff2']);
+for(const file of ['games.js','games-ui.js','game-bot.js','game-worker.js','games.css','vendor/chess.js','vendor/chess.LICENSE'])allowed.add(file);
+const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.woff2': 'font/woff2', '.LICENSE':'text/plain; charset=utf-8' };
 const port = Number(process.env.HUB_LC_PORT || 4173);
 const server = http.createServer((req, res) => {
   let file;

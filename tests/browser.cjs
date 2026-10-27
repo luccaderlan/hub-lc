@@ -19,6 +19,8 @@ const mark=text=>{reports.push(text);console.log('OK:',text);};
   const submit=()=>form.locator('button[type=submit]').click();
   const stored=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('hub-lc:v1')));
   try{
+    if(process.argv.includes('--games-only')){mark(await require('./games.browser.cjs')({browser,origin,out}));return;}
+    if(process.argv.includes('--pause-puzzle-only')){mark(await require('./pause-puzzle.browser.cjs')({browser,origin,out}));return;}
     if(process.argv.includes('--documents-only')){mark(await require('./documents.browser.cjs')({browser,origin,out}));return;}
     if(process.argv.includes('--brand-preview')){
       for(const mode of ['light','dark']){
@@ -34,7 +36,7 @@ const mark=text=>{reports.push(text);console.log('OK:',text);};
       return;
     }
     const response=await page.goto(origin);assert.equal(response.status(),200);
-    await page.getByRole('heading',{name:'O que te move hoje?'}).waitFor();
+    await page.getByRole('heading',{name:/Lucca/}).waitFor();
     assert.equal(await page.locator('[data-storage-warning]').isVisible(),false);
     assert.equal(await page.getByText('Bora na Tech',{exact:false}).count(),0);
     assert.equal(await page.locator('#main [data-view=books], #main [data-action=edit-book]').count(),0);
@@ -43,7 +45,7 @@ const mark=text=>{reports.push(text);console.log('OK:',text);};
     assert.equal(await page.locator('.subject-group').count(),4);
     assert.equal(await page.locator('.material-card').count(),4);
     await page.locator('[data-action=open-division][data-division="TI"]').click();
-    assert.equal(await page.locator('.subject-group').filter({has:page.locator('[data-division=TI]')}).locator('[data-action=filter-area]').count(),5);
+    assert.equal(await page.locator('.subject-group').filter({has:page.locator('[data-division=TI]')}).locator('[data-action=filter-area]').count(),13);
     assert.equal(await page.locator('.material-card').count(),4);
     assert.equal(await page.locator('#main').getByRole('heading',{name:'Filosofia',exact:true}).count(),0);
     await page.locator('[data-filter=division]').selectOption('Filosofia');
@@ -53,7 +55,7 @@ const mark=text=>{reports.push(text);console.log('OK:',text);};
     assert.equal(await page.locator('.study-content').count(),1);
     assert.equal(await page.locator('.material-card').count(),1);
     await page.reload();assert.equal(await page.locator('[data-query]').inputValue(),'PostgreSQL');
-    mark('coleções e assuntos na lateral, TI com cinco assuntos, busca e filtros preservados no reload');
+    mark('coleções e assuntos na lateral, TI com treze assuntos em seis grupos, busca e filtros preservados no reload');
     await nav('Sessões');assert.equal(await page.locator('[name=timer-target]').inputValue(),'');assert.equal(await page.locator('[data-clock]').textContent(),'00:00:00');
     mark('primeiro acesso sem cronômetro iniciado, duração imposta ou links ao Bora na Tech');
 
@@ -201,12 +203,12 @@ const mark=text=>{reports.push(text);console.log('OK:',text);};
         const css=getComputedStyle(document.documentElement);
         return Object.fromEntries(['--bg','--surface','--side','--text','--muted','--line','--accent','--progress'].map(key=>[key,css.getPropertyValue(key).trim().toUpperCase()]));
       });
-      assert.equal(colors['--bg'],mode==='light'?'#F7F8FA':'#14141C');
-      assert.equal(colors['--text'],mode==='light'?'#414154':'#D3D3E0');
-      assert.equal(colors['--line'],mode==='light'?'#E7E7EE':'#30303F');
-      assert.equal(colors['--surface'],mode==='light'?'#FFFFFF':'#1D1D28');
-      assert.equal(colors['--accent'],mode==='light'?'#7554E8':'#AC93FF');
-      assert.equal(colors['--progress'],mode==='light'?'#4FB6AB':'#6DCABC');
+      assert.equal(colors['--bg'],mode==='light'?'#FDFBF8':'#191A20');
+      assert.equal(colors['--text'],mode==='light'?'#35384D':'#D6D1CD');
+      assert.equal(colors['--line'],mode==='light'?'#DEDBD6':'#38373F');
+      assert.equal(colors['--surface'],mode==='light'?'#FDFBF8':'#191A20');
+      assert.equal(colors['--accent'],mode==='light'?'#7841EE':'#B297FF');
+      assert.equal(colors['--progress'],mode==='light'?'#25A79B':'#54BDAF');
       for(const width of [1440,360,320]){
         await identityPage.setViewportSize({width,height:1050});
         for(const name of ['Meu espaço','Áreas','Descobertas','Quadro','Biblioteca','Anotações','Sessões','Evolução','Dicionário']){
@@ -225,6 +227,11 @@ const mark=text=>{reports.push(text);console.log('OK:',text);};
     assert.ok(await identityPage.evaluate(()=>getComputedStyle(document.activeElement).outlineWidth==='3px'));
     await identityContext.close();
     mark('nova identidade: logo original intacta, paleta clara/escura, foco visível e todas as telas em desktop e mobile');
+    mark(await require('./timer.browser.cjs')({browser,origin,out}));
+    mark(await require('./pause-puzzle.browser.cjs')({browser,origin,out}));
+    mark(await require('./games.browser.cjs')({browser,origin,out}));
+    mark(await require('./sidebar.browser.cjs')({browser,origin,out}));
+    mark(await require('./editorial.browser.cjs')({browser,origin,out}));
     mark(await require('./ui.browser.cjs')({browser,origin,out}));
     mark(await require('./usability.browser.cjs')({browser,origin,out}));
     mark(await require('./notes.browser.cjs')({browser,origin,out}));
