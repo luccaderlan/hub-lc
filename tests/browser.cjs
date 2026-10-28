@@ -19,6 +19,13 @@ const mark=text=>{reports.push(text);console.log('OK:',text);};
   const submit=()=>form.locator('button[type=submit]').click();
   const stored=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('hub-lc:v1')));
   try{
+    if(process.argv.includes('--study-navigation-only')){mark(await require('./study-navigation.browser.cjs')({browser,origin,out}));return;}
+    if(process.argv.includes('--study-surfaces-only')){mark(await require('./study-surfaces.browser.cjs')({browser,origin,out}));return;}
+    if(process.argv.includes('--studies-only')){mark(await require('./studies.browser.cjs')({browser,origin,out}));return;}
+    if(process.argv.includes('--usability-only')){mark(await require('./usability.browser.cjs')({browser,origin,out}));return;}
+    if(process.argv.includes('--notes-only')){mark(await require('./notes.browser.cjs')({browser,origin,out}));return;}
+    if(process.argv.includes('--reading-only')){mark(await require('./reading-workspace.browser.cjs')({browser,origin,out}));return;}
+    if(process.argv.includes('--spaces-only')){mark(await require('./spaces.browser.cjs')({browser,origin,out}));return;}
     if(process.argv.includes('--games-only')){mark(await require('./games.browser.cjs')({browser,origin,out}));return;}
     if(process.argv.includes('--pause-puzzle-only')){mark(await require('./pause-puzzle.browser.cjs')({browser,origin,out}));return;}
     if(process.argv.includes('--documents-only')){mark(await require('./documents.browser.cjs')({browser,origin,out}));return;}
@@ -43,30 +50,26 @@ const mark=text=>{reports.push(text);console.log('OK:',text);};
     assert.doesNotMatch(await page.locator('#main').innerText(),/livro|biblioteca|leituras em andamento/i);
     await nav('Áreas');
     assert.equal(await page.locator('.subject-group').count(),4);
-    assert.equal(await page.locator('.material-card').count(),4);
-    await page.locator('[data-action=open-division][data-division="TI"]').click();
-    assert.equal(await page.locator('.subject-group').filter({has:page.locator('[data-division=TI]')}).locator('[data-action=filter-area]').count(),13);
-    assert.equal(await page.locator('.material-card').count(),4);
-    assert.equal(await page.locator('#main').getByRole('heading',{name:'Filosofia',exact:true}).count(),0);
-    await page.locator('[data-filter=division]').selectOption('Filosofia');
     assert.equal(await page.locator('.material-card').count(),0);
-    await page.locator('[data-filter=division]').selectOption('');
-    await page.locator('[data-query]').fill('PostgreSQL');
-    assert.equal(await page.locator('.study-content').count(),1);
+    assert.equal(await page.locator('[data-catalog-results] .study-subject').count(),16);
+    await page.locator('[data-catalog-search]').fill('PostgreSQL');
+    assert.equal(await page.locator('[data-catalog-results] .study-subject').count(),1);
+    await page.locator('[data-catalog-results] .study-subject').click();
     assert.equal(await page.locator('.material-card').count(),1);
+    await page.locator('[data-query]').fill('PostgreSQL');
     await page.reload();assert.equal(await page.locator('[data-query]').inputValue(),'PostgreSQL');
-    mark('coleções e assuntos na lateral, TI com treze assuntos em seis grupos, busca e filtros preservados no reload');
+    mark('catálogo dedicado, busca direta, endereço próprio e filtros preservados no reload');
     await nav('Sessões');assert.equal(await page.locator('[name=timer-target]').inputValue(),'');assert.equal(await page.locator('[data-clock]').textContent(),'00:00:00');
     mark('primeiro acesso sem cronômetro iniciado, duração imposta ou links ao Bora na Tech');
 
-    await nav('Áreas');await page.locator('.study-sidebar [data-action=new-area]').click();await form.locator('[name=name]').fill('História');await form.locator('[name=division]').selectOption({label:'Filosofia'});await form.locator('[name=description]').fill('Leituras e conexões');await submit();
+    await nav('Áreas');await page.locator('.study-catalog [data-action=new-area]').click();await form.locator('[name=name]').fill('História');await form.locator('[name=division]').selectOption({label:'Filosofia'});await form.locator('[name=description]').fill('Leituras e conexões');await submit();
     await page.getByRole('heading',{name:'História',exact:true}).waitFor();
     await page.locator('.add-study summary').click();await action('new-material');await form.locator('[name=title]').fill('Minha referência');await form.locator('[name=areaId]').selectOption({label:'História'});await form.locator('[name=url]').fill('javascript:alert(1)');await submit();
     await page.locator('#form-error').filter({hasText:'HTTP'}).waitFor();
     await form.locator('[name=url]').fill('https://example.org/');await submit();
     assert.ok((await stored()).materials.some(m=>m.title==='Minha referência'&&m.areaId));
     assert.equal((await stored()).areas.find(a=>a.name==='História').division,'Filosofia');
-    await page.locator('[data-action=edit-area]').click();await form.locator('[name=division]').selectOption('new');await form.locator('[name=newDivision]').fill('Humanidades');await submit();
+    await page.locator('.study-secondary-actions summary').click();await page.locator('[data-action=edit-area]').click();await form.locator('[name=division]').selectOption('new');await form.locator('[name=newDivision]').fill('Humanidades');await submit();
     assert.equal((await stored()).areas.find(a=>a.name==='História').division,'Humanidades');
     assert.equal(await page.locator('.material-card').count(),1);
     mark('áreas e conteúdos cadastrados; endereço executável rejeitado');
@@ -101,7 +104,7 @@ const mark=text=>{reports.push(text);console.log('OK:',text);};
     await nav('Anotações');await page.locator('.note-list button').filter({hasText:'O que essa leitura despertou'}).click();
     mark('livros físicos: status livre, validação de páginas e reflexões vinculadas salvas após reload');
 
-    await action('new-canvas');await form.locator('[name=title]').fill('Conexões entre ideias');await submit();
+    await nav('Anotações');await action('new-canvas');await form.locator('[name=title]').fill('Conexões entre ideias');await submit();
     for(let i=0;i<4;i++)await action('new-sticky');
     await page.locator('[data-sticky-text]').first().fill('Uma conexão');
     const sticky=page.locator('.sticky').first(),handle=sticky.locator('header'),box=await handle.boundingBox();
@@ -137,7 +140,7 @@ const mark=text=>{reports.push(text);console.log('OK:',text);};
     await page.getByRole('heading',{name:'Importar este backup?'}).waitFor();assert.equal((await stored()).books[1].chapter,'');await submit();assert.equal((await stored()).books[1].chapter,replacement.books[1].chapter);
     mark('preferências persistidas e backup exportado/importado; arquivo inválido não sobrescreve dados');
 
-    await nav('Áreas');await page.locator('[data-action=open-division][data-division="Humanidades"]').click();await page.locator('[data-action=filter-area]').filter({hasText:'História'}).click();await page.locator('[data-action=edit-area]').click();await action('delete-record',form);await submit();
+    await nav('Áreas');await page.locator('[data-catalog-search]').fill('História');await page.locator('[data-action=filter-area]').filter({hasText:'História'}).click();await page.locator('.study-secondary-actions summary').click();await page.locator('[data-action=edit-area]').click();await action('delete-record',form);await submit();
     assert.ok(!(await stored()).areas.some(a=>a.name==='História'));assert.equal((await stored()).tasks[0].areaId,'');assert.ok((await stored()).materials.some(m=>m.title==='Minha referência'));
     mark('excluir uma área preserva atividades, conteúdos e registros vinculados');
 
@@ -163,7 +166,7 @@ const mark=text=>{reports.push(text);console.log('OK:',text);};
     // Captura interna para revisar a interface, sem gerar novos protótipos.
     await page.screenshot({path:path.join(out,'hub-lc-desktop.png'),fullPage:true});
     await nav('Áreas');await page.screenshot({path:path.join(out,'hub-lc-divisions.png'),fullPage:true});
-    await page.locator('[data-action=open-division][data-division="TI"]').click();await page.screenshot({path:path.join(out,'hub-lc-ti.png'),fullPage:true});
+    await page.locator('[data-catalog-search]').fill('Java');await page.locator('[data-catalog-results] .study-subject strong').filter({hasText:/^Java$/}).click();await page.screenshot({path:path.join(out,'hub-lc-ti.png'),fullPage:true});
     await nav('Dicionário');await page.locator('[data-query]').fill('API');await page.screenshot({path:path.join(out,'hub-lc-dictionary.png'),fullPage:true});
     for(const width of [1024,360,320]){
       await page.setViewportSize({width,height:900});
@@ -171,7 +174,7 @@ const mark=text=>{reports.push(text);console.log('OK:',text);};
         if(width<781&&name==='Preferências')await page.locator('.topbar [data-view=settings]').click();else await nav(name);
         const dimensions=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:innerWidth}));assert.ok(dimensions.scroll<=dimensions.width+1,`${name} transborda em ${width}px`);
         if(name==='Áreas'){
-          await page.locator('[data-action=open-division][data-division="TI"]').click();
+          await page.locator('[data-catalog-search]').fill('Java');await page.locator('[data-catalog-results] .study-subject strong').filter({hasText:/^Java$/}).click();
           const fit=await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1);assert.equal(fit,true);
         }
         if(name==='Dicionário'){
@@ -237,7 +240,10 @@ const mark=text=>{reports.push(text);console.log('OK:',text);};
     mark(await require('./notes.browser.cjs')({browser,origin,out}));
     mark(await require('./discoveries.browser.cjs')({browser,origin,out}));
     mark(await require('./documents.browser.cjs')({browser,origin,out}));
+    mark(await require('./study-navigation.browser.cjs')({browser,origin,out}));
+    mark(await require('./study-surfaces.browser.cjs')({browser,origin,out}));
     mark(await require('./studies.browser.cjs')({browser,origin,out}));
+    mark(await require('./spaces.browser.cjs')({browser,origin,out}));
     mark(await require('./reading-workspace.browser.cjs')({browser,origin,out}));
     assert.deepEqual(errors,[]);mark('nenhum erro de JavaScript nos fluxos verificados');
     await fs.writeFile(path.join(out,'browser-report.json'),JSON.stringify({reports,errors},null,2));

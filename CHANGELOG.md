@@ -1,5 +1,21 @@
 # Histórico de alterações
 
+## 28/10/2026 — Biblioteca e espaços individuais implementados
+
+- Biblioteca independente na lateral, retirada de Estudos e compatibilidade com atalhos antigos. URLs por livro/anotação/seção, histórico, caminhos e retorno ao filtro do acervo.
+- Seis seções por espaço, com caderno, destaques e murais existentes preservados; tópicos internos sem recursão, galeria separada e materiais locais ou por referência.
+- Capas opcionais; galerias com original preservado, ampliação, metadados, grupos, ordem manual acessível, referências textuais e cartões visuais opcionais. Colagem/arraste na escrita oferece encaminhamento explícito à galeria.
+- Migração aditiva sem alterar IDs ou bases. Arquivos no IndexedDB existente por SHA-256; backup completo inclui anexos, quadros e organização. Recuperação por original e validação antes de substituir registros; referências compartilhadas preservadas nas exclusões.
+- Exclusão de livro oferece preservação do conteúdo próprio em anotação independente. Documentação atualizada para o comportamento entregue.
+- Checagem de sintaxe, 53 testes de dados e suítes de navegador, incluindo capturas de todas as seções em claro/escuro, desktop e celular; limites e alcance da validação registrados no plano e no README.
+
+## 28/10/2026 — planejamento da Biblioteca e dos espaços individuais
+
+- Documentado o plano para retirar Livros de Estudos e criar Biblioteca na barra lateral.
+- Definidos espaços individuais de livros e anotações, com escrita, quadro visual, imagens e materiais separados; capas opcionais.
+- Registrados escopo, sequência futura, preservação dos dados, backup e critérios de aceite em [PLANO-BIBLIOTECA-E-ESPACOS.md](PLANO-BIBLIOTECA-E-ESPACOS.md).
+- Atualizados proposta, direção visual, avaliação de UI/UX, README e contexto de hospedagem. Alteração exclusivamente documental; recursos ainda não implementados e sem novos testes de aplicação nesta etapa.
+
 ## 27/10/2026 — jogos contra bots em Pausa e Puzzle
 
 - Escolha entre Desvio, jogo da velha, dama brasileira e xadrez, com três dificuldades e uma partida salva por jogo. O acesso e o resultado preservam o estado da sessão.
@@ -103,3 +119,13 @@ Esta atualização reúne as alterações locais que ainda não estavam no GitHu
 - Inspeção da hospedagem, armazenamento privado remoto, configuração de domínio/HTTPS e migração continuam descritos em [CONTEXTO-HOSPEDAGEM.md](CONTEXTO-HOSPEDAGEM.md).
 - Não há prévia local dos formatos Office/ODT/RTF/EPUB, transcrição automática, interpretação por IA ou sincronização automática com o Notion.
 - A validação automatizada usa Chrome; não constitui certificação de acessibilidade nem verificação em Safari, Firefox ou dispositivos físicos.
+
+## 28/10/2026 — Catálogo e navegação contextual de Estudos
+
+- Estudos abre um catálogo com áreas, grupos expansíveis e busca direta por assunto, com caminho nos resultados.
+- Assuntos têm endereço próprio, retorno ao catálogo e acervo em lista única, sem segunda lateral ou abas duplicadas de formatos.
+- Troca rápida por painel sobreposto com busca independente, hover/clique/teclado e modal nativo para celular.
+- Criação de referências, arquivos, links e notas herda o assunto; o vínculo pode ser alterado explicitamente. Leitores/editores oferecem retorno ao estudo de origem.
+- Contextos preservam busca, tipo e rolagem; histórico, recarga e assunto removido têm tratamento próprio.
+- Notas indiretas compartilham a regra de pertencimento com exportações. IDs, originais, vínculos confirmados, espaços e backups continuam no mesmo esquema.
+- Testes e documentação atualizados para catálogo, navegação, responsividade, claro/escuro e regressões dos recursos existentes.

@@ -21,8 +21,8 @@ module.exports=async({browser,origin,out})=>{
     await page.locator('#query').pressSequentially('inexistente');assert.equal(await page.locator('#query').inputValue(),'inexistente');assert.equal(await page.locator('#query').evaluate(el=>el===document.activeElement),true);
     await action('clear-filters');await nav('notes');await action('new-note');assert.equal(await page.locator('[name=title]').evaluate(el=>el===document.activeElement),true);
     await page.locator('[name=title]').fill('Uma reflexão');await submit();await page.locator('#note-body').fill('Texto preservado.');
-    await page.locator('#query').pressSequentially('ausente');assert.equal(await page.locator('#query').inputValue(),'ausente');assert.equal(await page.locator('#query').evaluate(el=>el===document.activeElement),true);assert.match(await page.locator('.empty h3').innerText(),/neste filtro/);
-    await action('clear-filters');assert.equal(await page.locator('#note-body').inputValue(),'Texto preservado.');
+    await action('all-notes');await page.locator('#query').pressSequentially('ausente');assert.equal(await page.locator('#query').inputValue(),'ausente');assert.equal(await page.locator('#query').evaluate(el=>el===document.activeElement),true);assert.match(await page.locator('.empty h3').innerText(),/neste filtro/);
+    await action('clear-filters');assert.equal((await stored()).notes[0].body,'Texto preservado.');
     await page.locator('#query').evaluate(el=>{el.focus();el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));el.value='refle';el.dispatchEvent(new InputEvent('input',{bubbles:true,isComposing:true}));});
     assert.equal(await page.locator('#query').inputValue(),'refle');assert.equal(await page.locator('.note-list-item').count(),1);
     await page.locator('#query').dispatchEvent('compositionend');assert.equal(await page.locator('#query').inputValue(),'refle');await action('clear-filters');
@@ -31,9 +31,9 @@ module.exports=async({browser,origin,out})=>{
     await action('continue-editing');assert.equal(await page.locator('[name=title]').inputValue(),'Rascunho protegido');
     await action('close-dialog');await action('discard-changes');await page.locator('#editor').waitFor({state:'hidden'});assert.equal((await stored()).notes.length,1);
     assert.equal(await page.locator('.topbar [data-action=new-note]').evaluate(el=>el===document.activeElement),true);
-    await action('edit-note');await page.locator('[name=title]').fill('   ');await submit();assert.match(await page.locator('#form-error').innerText(),/Preencha/);assert.equal(await page.locator('#form-error').evaluate(el=>el===document.activeElement),true);
+    await page.locator('.note-list [data-action=open-note]').first().click();await action('edit-note');await page.locator('[name=title]').fill('   ');await submit();assert.match(await page.locator('#form-error').innerText(),/Preencha/);assert.equal(await page.locator('#form-error').evaluate(el=>el===document.activeElement),true);
     await page.locator('[name=title]').fill('Reflexão revisada');await submit();assert.equal((await stored()).notes[0].title,'Reflexão revisada');
-    await page.locator('.note-editor [data-action=quick-delete]').click();assert.equal(await page.locator('.dialog-footer [data-action=close-dialog]').evaluate(el=>el===document.activeElement),true);
+    await page.locator('.individual-note-head [data-action=quick-delete]').click();assert.equal(await page.locator('.dialog-footer [data-action=close-dialog]').evaluate(el=>el===document.activeElement),true);
     await page.keyboard.press('Enter');await page.locator('#editor').waitFor({state:'hidden'});assert.equal((await stored()).notes.length,1);
     await nav('dictionary');await action('more-terms');assert.equal(await page.locator('.term-card h2').nth(24).evaluate(el=>el===document.activeElement),true);
     // Touch targets and long data fit narrow screens; expanded canvas isolates background.

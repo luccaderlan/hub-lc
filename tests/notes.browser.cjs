@@ -22,10 +22,10 @@ module.exports=async({browser,origin,out})=>{
     await selectText(10,14);await mark('pink');assert.equal((await note('text')).highlights.length,2);
     await selectText(10,14);await page.locator('[data-color=""]').click();assert.equal((await note('text')).highlights[0].start,14);
     await selectText(14,20);await page.keyboard.press('Escape');assert.equal(await page.locator('.selection-tools').isVisible(),false);
-    await selectText(14,20);await page.locator('.note-editor h2').click();assert.equal(await page.locator('.selection-tools').isVisible(),false);
+    await selectText(14,20);await page.locator('h1').click();assert.equal(await page.locator('.selection-tools').isVisible(),false);
     await page.screenshot({path:out+'/hub-lc-markers-contextual.png',fullPage:true});
 
-    await action('new-canvas');await page.locator('[name=title]').fill('Mural expansível');await submit();await action('new-sticky');await action('new-sticky');
+    await action('all-notes');await action('new-canvas');await page.locator('[name=title]').fill('Mural expansível');await submit();await action('new-sticky');await action('new-sticky');
     const stickies=page.locator('.sticky');await page.locator('[data-sticky-text]').nth(0).fill('Primeira ideia');await page.locator('[data-sticky-text]').nth(1).fill('Outra ideia');
     const viewport=page.locator('.canvas-viewport');await viewport.evaluate(el=>{el.scrollLeft=0;el.scrollTop=0;});await stickies.first().locator('textarea').focus();
     const dims=(await note('canvas')).stickies[0];await drag(stickies.first().locator('[data-resize-sticky]'),60,45);let updated=(await note('canvas')).stickies[0];assert.ok(updated.width>dims.width);assert.ok(updated.height>dims.height);assert.equal(await page.locator('#editor').isVisible(),false);
@@ -43,7 +43,7 @@ module.exports=async({browser,origin,out})=>{
     const measured=await viewport.evaluate(el=>({width:el.clientWidth,height:el.clientHeight}));assert.ok(parseInt(await page.locator('[data-canvas-zoom]').innerText())<=100);
     await action('canvas-expand');assert.equal(await page.locator('.canvas-expanded').count(),1);assert.equal(await page.locator('[data-action=canvas-expand]').getAttribute('aria-pressed'),'true');await page.keyboard.press('Escape');assert.equal(await page.locator('.canvas-expanded').count(),0);
     // Navigation uses a drag on the empty background, independent of moving cards.
-    await action('canvas-zoom-in');await action('canvas-zoom-in');await viewport.scrollIntoViewIfNeeded();const panBox=await viewport.boundingBox();await page.mouse.move(panBox.x+panBox.width-35,panBox.y+panBox.height-55);await page.mouse.down();await page.mouse.move(panBox.x+panBox.width-125,panBox.y+panBox.height-100,{steps:8});await page.mouse.up();assert.ok(await viewport.evaluate(el=>el.scrollLeft)>0);
+    for(let i=0;i<8&&await viewport.evaluate(el=>el.scrollWidth<=el.clientWidth+150);i++)await action('canvas-zoom-in');await viewport.scrollIntoViewIfNeeded();const panBox=await viewport.boundingBox();await page.mouse.move(panBox.x+panBox.width-35,panBox.y+panBox.height-55);await page.mouse.down();await page.mouse.move(panBox.x+panBox.width-125,panBox.y+panBox.height-100,{steps:8});await page.mouse.up();assert.ok(await viewport.evaluate(el=>el.scrollLeft)>0);
     await page.reload();mural=await note('canvas');assert.equal(mural.stickies[0].text,'Primeira ideia');assert.equal(mural.canvas.width,900);assert.equal(mural.connections.length,1);assert.ok(mural.stickies[0].width>220);
     await action('canvas-fit');await page.screenshot({path:out+'/hub-lc-canvas-desktop.png',fullPage:true});
     // Remove a link; moving a card onto the other card also links and restores its position.
@@ -65,10 +65,10 @@ module.exports=async({browser,origin,out})=>{
     await page.setViewportSize({width:1440,height:1050});await viewport.evaluate(el=>{el.scrollLeft=0;el.scrollTop=0;});await action('canvas-fit');
     await action('remove-sticky');await action('close-dialog');assert.equal((await note('canvas')).stickies.length,2);
     await action('remove-sticky');await submit();assert.equal((await note('canvas')).stickies.length,1);assert.equal((await note('canvas')).connections.length,0);
-    await page.locator('.note-editor [data-action=quick-delete]').click();await action('close-dialog');assert.equal((await stored()).notes.length,2);
-    await page.locator('.note-editor [data-action=quick-delete]').click();await submit();assert.equal((await stored()).notes.length,1);
+    await page.locator('.individual-note-head [data-action=quick-delete]').click();await action('close-dialog');assert.equal((await stored()).notes.length,2);
+    await page.locator('.individual-note-head [data-action=quick-delete]').click();await submit();assert.equal((await stored()).notes.length,1);
     await page.setViewportSize({width:320,height:1000});const fit=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,overflow:[...document.querySelectorAll('body *')].filter(el=>{const r=el.getBoundingClientRect();return r.width>0&&r.right>innerWidth+1;}).map(el=>({tag:el.tagName,class:el.className,right:el.getBoundingClientRect().right})).slice(0,12)}));assert.ok(fit.scroll<=fit.width+1,JSON.stringify(fit));
-    await page.locator('#note-body').fill('Texto longo com marcação e mais ideias.\n'.repeat(40));await selectText(5,25);await mark('green');
+    await page.locator('.note-list [data-action=open-note]').first().click();await page.locator('#note-body').fill('Texto longo com marcação e mais ideias.\n'.repeat(40));await selectText(5,25);await mark('green');
     await page.locator('#note-body').evaluate(el=>el.scrollTop=100);await page.waitForTimeout(100);assert.equal(await page.locator('.highlight-backdrop').evaluate(el=>el.scrollTop),await page.locator('#note-body').evaluate(el=>el.scrollTop));
     await page.screenshot({path:out+'/hub-lc-markers-mobile.png',fullPage:true});assert.deepEqual(errors,[]);
     return 'anotações: seleção real com mouse → ferramenta contextual → cor; post-its e mural redimensionáveis, zoom, ampliação, vínculos por arraste, persistência, cancelamento e layout mobile';

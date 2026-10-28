@@ -1,5 +1,37 @@
 # Avaliação de UI/UX — Hub LC
 
+## Catálogo e navegação de Estudos — 28/10/2026
+
+A entrada de Estudos agora apresenta áreas, grupos e assuntos, sem carregar materiais. Um link abre o assunto em endereço próprio, com caminho de retorno e lista única de Referências, Documentos, Links e vídeos e Anotações. Ações secundárias concentram edição e Markdown. Todo o acervo, Sem assunto e Dicionário continuam alcançáveis. O cadastro de cada tipo permite manter ou alterar o assunto sugerido.
+
+O painel Trocar assunto ocupa 320 px no desktop e se sobrepõe ao acervo. Hover abre após 200 ms; a travessia tem tolerância de 260 ms; clique fixa o painel. No celular, `dialog.showModal()` contém o foco e torna o fundo inerte. Escape e Fechar devolvem foco ao gatilho, e navegar foca o título. O assunto atual fica destacado e seus ancestrais são expandidos ao abrir o painel; recolher grupos no painel não altera o catálogo. Temporizadores de hover verificam se o painel ainda pertence à tela atual e se foi fixado por clique.
+
+Verificação com Playwright/Chrome e dados sintéticos isolados:
+
+- Catálogo sem acervo, grupos expansíveis, busca por nome/área/grupo (inclusive recolhidos), caminhos e estados vazios.
+- Buscas independentes de catálogo, painel e materiais; tipos, busca e rolagem por contexto.
+- Links copiáveis, recarga, Voltar/Avançar, destino removido e atalhos da página inicial.
+- Retorno de nota, documento e descoberta, inclusive após recarga; escrita e filtros preservados. Rolagem conferida também com 35 notas.
+- Criação contextual de referências, arquivos, links e notas; rascunho de formulário protegido ao tentar voltar pelo histórico.
+- Hover, travessia, saída rápida sem abertura, fixação por clique, clique fora, Enter, Escape, retorno de foco, toque e foco contido no modal.
+- Catálogo, assunto e painel em 320, 360, 768 e 1440 px nos temas claro/escuro, incluindo nome longo; cenário com 106 assuntos sem alteração dos dados armazenados.
+- Contagens e resultados compartilham seleção; notas com múltiplos vínculos contam uma vez. Sugestões permanecem explícitas e não são confirmadas automaticamente.
+- Sintaxe, 58 testes unitários e regressões de estudos, documentos, anotações, captura/grupos, espaços, livros, filtros, exportações e restauração de arquivos originais.
+
+Comandos e executores estão no README. Capturas `studies-catalog-*`, `studies-subject-*` e `studies-panel-*`, e o relatório da suíte completa `browser-report.json`, ficam em `test-results/`. A execução completa terminou com 28 verificações agrupadas e nenhum erro JavaScript; o teste separado de captura/grupos também passou. Janelas desktop baixas de 781/900/1024 × 480 px foram verificadas com o menu recolhido; o painel se limita ao espaço disponível na tela. O novo módulo `study-catalog.js` está na lista pública do servidor. Não houve migração nem alteração do esquema de backup.
+
+Limites: validação automatizada em Chrome, com toque emulado; Safari, Firefox, leitores de tela e aparelhos físicos não foram testados nesta entrega. Não é uma certificação de acessibilidade. Os endereços apontam para registros locais: outro navegador precisa possuir os mesmos dados, por exemplo após importar o backup. Subtemas arbitrários e sincronização permanecem fora do escopo.
+
+## Revisão implementada em 28/10/2026
+
+Biblioteca foi separada de Estudos, formando seis destinos principais. Livros e anotações têm seções próprias e caminhos de retorno. Abrir uma nota vinculada conserva o contexto do livro e mostra apenas as abas da anotação. A lista de Anotações passa a ser uma entrada para os espaços individuais; a escrita não fica junto dos filtros da lista.
+
+Verificação no Chrome com Playwright e perfis isolados: todas as seis seções de livro e anotação nos temas claro/escuro, em 320, 360 e 1440 px, sem transbordamento da página. Inspeção das capturas de galeria, escrita e quadros em desktop e celular. Abas mantêm seleção visível e foco; ações móveis dos espaços têm pelo menos 44 px. Galeria preserva a imagem completa, com ampliação, ordem por teclado, metadados e associação explícita ao quadro.
+
+Fluxos cobertos: capas opcionais, isolamento entre registros, notas globais abrindo o mesmo registro no livro, histórico e recarga, colagem separada, links e arquivos locais, referências compartilhadas, backup completo restaurado em navegador vazio, arquivo ausente recuperado pelo original, upload inválido/falha de armazenamento e exclusão de livro com preservação dos conteúdos. Relatório e capturas em `test-results/spaces-report.json` e `test-results/spaces-*.png`. Os [critérios do plano](PLANO-BIBLIOTECA-E-ESPACOS.md) foram usados na implementação.
+
+As avaliações abaixo são histórico das versões anteriores. A linha que agrupava Livros em Estudos foi substituída nesta revisão. Os testes não equivalem a certificação de acessibilidade ou validação em Safari, Firefox, leitores de tela e aparelhos físicos.
+
 ## Simplificação e organização — 23/10/2026
 
 A avaliação identificou três fontes de atrito: dez destinos principais com funções do mesmo contexto, vários níveis de cartões antes de chegar ao material e separação entre referências, arquivos e ideias do mesmo assunto. A reformulação aplicada concentra os estudos e mantém as ferramentas de escrita e execução acessíveis.
@@ -86,7 +118,7 @@ O link “Pular para o conteúdo” permite chegar ao conteúdo pelo teclado sem
 - Falha de armazenamento simulada: o texto continua na memória, a interface informa a falha, a saída é protegida e o backup exportado contém o texto não persistido.
 - 22 testes de dados, formatos e exportação Markdown, checagem de sintaxe e suíte completa no Chrome com Playwright; relatório gerado em `test-results/browser-report.json`.
 
-A verificação automatizada de layout e teclado foi feita no Chrome, com contextos isolados e dados de teste. Não equivale a uma certificação de acessibilidade nem a testes manuais com leitores de tela, Safari, Firefox ou dispositivos físicos. O histórico cobre a navegação entre seções; escolhas internas de uma seção continuam no estado de trabalho, sem uma URL própria para cada registro.
+A verificação automatizada de layout e teclado foi feita no Chrome, com contextos isolados e dados de teste. Não equivale a uma certificação de acessibilidade nem a testes manuais com leitores de tela, Safari, Firefox ou dispositivos físicos. Na versão avaliada em 21/10, o histórico cobria somente a navegação entre seções. Desde 28/10, livros e anotações possuem URLs por registro e seção.
 
 O mural usa uma área finita ajustável entre 480–8000 px de largura e 360–8000 px de altura. Cada post-it pode medir de 180 × 160 até 1000 × 1000 px. O zoom muda a visualização; alterar as dimensões muda o espaço de trabalho. As duas ações ficam separadas para tornar o resultado previsível.
 

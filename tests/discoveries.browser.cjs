@@ -29,9 +29,9 @@ module.exports=async({browser,origin,out})=>{
     assert.equal(new URL(await page.locator('.point-source').getAttribute('href')).searchParams.get('t'),'522s');
     await page.reload();assert.equal(await page.locator('.discovery-point').count(),1);
 
-    await nav('Áreas');await page.locator('[data-action=open-division][data-division="Neurociência"]').click();
+    await nav('Áreas');await page.locator('[data-catalog-results] .study-subject strong').filter({hasText:/^Neurociência$/}).click();
     assert.equal(await page.locator('.discovery-card').count(),1);
-    assert.equal(await page.locator('.discovery-card').getByText('Possível conexão',{exact:true}).count(),1);
+    assert.equal(await page.locator('.discovery-card').getByText('Vínculo sugerido',{exact:true}).count(),1);
     await action('open-discovery',page.locator('.discovery-card'));
     const neuro=(await stored()).areas.find(a=>a.name==='Neurociência');
     await page.locator(`[data-action=link-discovery-area][data-area="${neuro.id}"]`).click();
@@ -80,13 +80,13 @@ module.exports=async({browser,origin,out})=>{
     assert.equal((await stored()).discoveries.length,0);assert.equal((await stored()).notes[0].discoveryId,'');assert.equal((await stored()).tasks[0].discoveryId,'');
     assert.equal((await stored()).notes[0].body,'Quero experimentar isso nos meus estudos.');
 
-    await nav('Áreas');await page.locator('[data-action=open-division][data-division="Neurociência"]').click();
-    await page.locator('[data-action=filter-area]').filter({hasText:'Neurociência'}).click();await page.locator('[data-action=edit-area]').click();await action('delete-record',form);await submit();
+    await nav('Áreas');await page.locator('[data-catalog-results] .study-subject strong').filter({hasText:/^Neurociência$/}).click();
+    await page.locator('.study-secondary-actions summary').click();await page.locator('[data-action=edit-area]').click();await action('delete-record',form);await submit();
     // Reimporta a descoberta sem a área removida: referências continuam válidas.
     const after=await stored();after.discoveries=[{...backup.discoveries[0],areaIds:[api.id]}];
     await page.locator('#import-file').setInputFiles({name:'updated.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(after))});await submit();
-    await nav('Áreas');await page.locator('[data-action=open-division][data-division="TI"]').click();
-    await page.locator('[data-action=filter-area]').filter({hasText:'APIs'}).click();await page.locator('[data-action=edit-area]').click();await action('delete-record',form);await submit();
+    await nav('Áreas');
+    await page.locator('[data-action=filter-area]').filter({hasText:'APIs'}).click();await page.locator('.study-secondary-actions summary').click();await page.locator('[data-action=edit-area]').click();await action('delete-record',form);await submit();
     assert.deepEqual((await stored()).discoveries[0].areaIds,[]);
     await nav('Descobertas');
     for(const [kind,title] of [['Artigo','Artigo sobre memória'],['Podcast','Podcast sobre memória'],['Outro','Outro conteúdo']]){

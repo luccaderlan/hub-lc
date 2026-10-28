@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node server.cjs",
     "test": "node --test tests/*.test.js",
-    "check": "node --check app.js && node --check data.js && node --check puzzle.js && node --check games.js && node --check games-ui.js && node --check game-bot.js && node --check game-worker.js && node --check documents.js && node --check study-export.js && node --check server.cjs",
+    "check": "node --check app.js && node --check data.js && node --check spaces.js && node --check puzzle.js && node --check games.js && node --check games-ui.js && node --check game-bot.js && node --check game-worker.js && node --check documents.js && node --check study-catalog.js && node --check study-export.js && node --check server.cjs",
     "test:browser": "node tests/browser.cjs"
   }
 }

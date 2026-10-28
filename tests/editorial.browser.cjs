@@ -26,8 +26,8 @@ module.exports=async({browser,origin,out})=>{
     assert.ok(noteIds.includes(fixture.directId));assert.ok(noteIds.includes(fixture.indirectId));
     assert.doesNotMatch(await page.locator('.note-list').innerText(),/Kant/);
     await page.reload();assert.equal(await page.locator('[data-filter=area]').inputValue(),fixture.java);
-    await nav('home');await page.locator('.resume-primary').click();assert.equal(await page.locator('.study-context h2').innerText(),'Java');
-    await nav('home');await page.locator('[data-action=home-division]').filter({hasText:'Filosofia'}).click();assert.equal(await page.locator('[data-filter=division]').inputValue(),'Filosofia');
+    await nav('home');await page.locator('.resume-primary').click();assert.equal(await page.locator('.study-heading h1').innerText(),'Java');
+    await nav('home');await page.locator('[data-action=home-division]').filter({hasText:'Filosofia'}).click();assert.equal(await page.locator('.study-heading h1').innerText(),'Filosofia');
     await nav('home');await page.locator('[data-action=quick-note]').first().click();await page.locator('[name=title]').fill('Aprender com minhas palavras');await page.locator('[name=body]').fill('Aprender melhor é conseguir explicar com as próprias palavras.');await submit();
     assert.equal(await page.locator('#main').getAttribute('data-page'),'home');
     assert.match(await page.locator('.idea-paper').innerText(),/Aprender melhor/);

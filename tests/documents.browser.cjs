@@ -27,7 +27,7 @@ module.exports=async({browser,origin,out})=>{
     await nav('Quadro');await action('open-document');await page.reload();await page.locator('[data-document-download]').waitFor();
     assert.equal((await stored()).documents[0].page,'1');assert.equal(await page.locator('[data-document-body]').inputValue(),'Investigar ideias para estudar Java.');
     const download=page.waitForEvent('download');await page.locator('[data-document-download]').click();const file=await download;assert.deepEqual(await fs.readFile(await file.path()),pdf);
-    await nav('Áreas');await page.locator('[data-action=open-division][data-division="TI"]').click();assert.equal(await page.locator('.document-card').count(),1);await action('open-document');
+    await nav('Áreas');await page.locator('[data-catalog-results] .study-subject strong').filter({hasText:/^Java$/}).click();assert.equal(await page.locator('.document-card').count(),1);await action('open-document');
     await page.waitForTimeout(1200);
     await page.screenshot({path:path.join(out,'hub-lc-document-reader.png'),fullPage:false});
     for(const width of [1024,360,320]){await page.setViewportSize({width,height:900});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}
@@ -35,8 +35,8 @@ module.exports=async({browser,origin,out})=>{
     await nav('Preferências');const backupDownload=page.waitForEvent('download');await action('export');const backupFile=await backupDownload,backup=JSON.parse(await fs.readFile(await backupFile.path(),'utf8'));
     assert.equal(backup.documentFiles.length,1);assert.deepEqual(Buffer.from(backup.documentFiles[0].data,'base64'),pdf);
     const fresh=await browser.newContext({acceptDownloads:true}),freshPage=await fresh.newPage();await freshPage.goto(origin);
-    const corrupt=structuredClone(backup);corrupt.documentFiles[0].data=Buffer.from('%PDF-invalid').toString('base64');
-    await freshPage.locator('#import-file').setInputFiles({name:'invalid.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(corrupt))});await freshPage.locator('#toast').filter({hasText:'não corresponde'}).waitFor();assert.equal(await freshPage.evaluate(()=>localStorage.getItem('hub-lc:v1')),null);
+    const beforeInvalid=await freshPage.evaluate(()=>localStorage.getItem('hub-lc:v1'));const corrupt=structuredClone(backup);corrupt.documentFiles[0].data=Buffer.from('%PDF-invalid').toString('base64');
+    await freshPage.locator('#import-file').setInputFiles({name:'invalid.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(corrupt))});await freshPage.locator('#toast').filter({hasText:'não corresponde'}).waitFor();assert.equal(await freshPage.evaluate(()=>localStorage.getItem('hub-lc:v1')),beforeInvalid);
     await freshPage.locator('#import-file').setInputFiles({name:'backup.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(backup))});await freshPage.locator('#editor-form button[type=submit]').click();await freshPage.getByRole('heading',{name:/Lucca/}).waitFor();
     await require('./navigation.cjs')(freshPage,'documents');await freshPage.locator('[data-action=open-document]').click();await freshPage.locator('[data-document-download]').waitFor();
     const restoredDownload=freshPage.waitForEvent('download');await freshPage.locator('[data-document-download]').click();const restored=await restoredDownload;assert.deepEqual(await fs.readFile(await restored.path()),pdf);

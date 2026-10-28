@@ -1,6 +1,12 @@
 # Hub LC — proposta em construção
 
-Atualizado em 13/10/2026. Este documento registra o conceito e as próximas etapas. A primeira versão local foi implementada; o README descreve as funções disponíveis e como executar. Escolhas sugeridas continuam abertas à discussão.
+## Decisão de 28/10/2026 — implementada
+
+Biblioteca é um destino lateral independente; Livros saiu de Estudos. Livros e anotações possuem espaços com Visão geral, Escrita, Anotações/Tópicos, Quadro visual, Imagens e Materiais. Imagens ficam em galeria separada, inclusive ao colar ou soltar arquivos na escrita. Capas são opcionais; livros sem capa mantêm o formato do catálogo existente.
+
+O [registro de implementação](PLANO-BIBLIOTECA-E-ESPACOS.md) detalha navegação contextual, limites de arquivos, migração aditiva, recuperação e testes. Esta decisão prevalece sobre descrições históricas divergentes. A implementação é local, sem hospedagem ou sincronização.
+
+Conceito inicial de 13/10/2026; planejamento atualizado em 28/10/2026. Este documento registra o conceito e as próximas etapas. A primeira versão local foi implementada; o README descreve as funções disponíveis e como executar. Escolhas sugeridas continuam abertas à discussão.
 
 ## Estado da primeira implementação
 
@@ -85,7 +91,7 @@ Cada cartão representa uma ação concreta, com objetivo, conteúdo, tipo (aula
 
 ### Anotações
 
-Documentos para texto, código, links e imagens e um espaço livre para post-its e conexões. O primeiro protótipo deve representar os dois formatos para avaliar sua importância na experiência; não é necessário reproduzir todas as funções do Miro. Notas podem se vincular a conteúdos, atividades, projetos e termos do dicionário, ou existir soltas e ser organizadas depois. A possibilidade de manter o caderno como parte do fluxo ainda deve ser discutida.
+Espaços para escrita de texto e código, com imagens em galeria separada, referências em Materiais e um quadro visual próprio para post-its e conexões, conforme o plano de 28/10/2026. O primeiro protótipo deve representar os dois formatos para avaliar sua importância na experiência; não é necessário reproduzir todas as funções do Miro. Notas podem se vincular a conteúdos, atividades, projetos e termos do dicionário, ou existir soltas e ser organizadas depois. A possibilidade de manter o caderno como parte do fluxo ainda deve ser discutida.
 
 ### Sessões e planejamento
 

@@ -2,6 +2,7 @@ import {inspectDocument,documentFormat} from './documents.js';
 import {createPuzzle,validPuzzle} from './puzzle.js';
 import {createGames,validGames} from './games.js';
 export {inspectDocument,documentFormat} from './documents.js';
+import {validateSpaces} from './spaces.js';
 export const STORAGE_KEY = 'hub-lc:v1';
 // Cópia do Dicionário DEV consultada em 13/10/2026. Notion permanece a origem.
 export const dictionarySnapshot = {
@@ -376,6 +377,8 @@ export function divisionFor(area) {
   if (['Filosofia','Neurociência','Espiritualidade'].includes(area.name)) return area.name;
   return 'Outros';
 }
+export const subgroupFor = area => area.subgroup ?? (divisionFor(area)==='TI'?TI_STUDY_GROUPS.find(g=>g.subjects.includes(area.name))?.name||'':'');
+export const defaultStudyGroups = () => TI_STUDY_GROUPS.map(g=>({name:g.name,division:'TI'}));
 export const uid = () => globalThis.crypto.randomUUID();
 export const today = () => {
   const d = new Date();
@@ -385,13 +388,13 @@ export function createInitial() {
   const areas = ['Java','Maven','Spring Boot','APIs','PostgreSQL','Neurociência','Filosofia','Espiritualidade'].map(name => ({ id:uid(),name,division:divisionFor({name}),description:name==='Espiritualidade'?'Despertar espiritual, autoconhecimento e reflexões pessoais.':'' }));
   const material = (title,name,url,kind='Documentação') => ({id:uid(),title,areaId:areas.find(a=>a.name===name).id,url,kind,description:'Referência inicial. Você pode editar ou remover.'});
   return addTiStudySubjects({
-    schemaVersion:1, areas,
+    schemaVersion:1, areas, studyGroups:defaultStudyGroups(),
     materials:[material('Aprender Java','Java','https://dev.java/learn/'),material('Guias do Maven','Maven','https://maven.apache.org/guides/'),material('Guias do Spring','Spring Boot','https://spring.io/guides/'),material('Tutorial do PostgreSQL','PostgreSQL','https://www.postgresql.org/docs/current/tutorial.html')],
     columns:['Ideias','Em andamento','Para revisar','Concluído'].map(name=>({id:uid(),name})),tasks:[],
     customTerms:[],hiddenTerms:[],
     books:[['O espírito do guerreiro','Steven Pressfield'],['A arte da Guerra','Sun Tzu']].map(([title,author])=>({id:uid(),title,author,status:'',page:'',total:'',chapter:'',areaId:''})),
     notes:[],sessions:[],discoveries:[],documents:[],
-    timer:{running:false,areaId:'',bookId:'',startedAt:null,elapsedMs:0,targetMinutes:'',targetNotified:false,mode:'stopwatch',deadline:null,alertDismissed:false,pause:emptyPause()},
+    timer:{running:false,areaId:'',bookId:'',startedAt:null,elapsedMs:0,pausedMs:0,targetMinutes:'',targetNotified:false,mode:'stopwatch',deadline:null,alertDismissed:false,pause:emptyPause()},
     puzzle:createPuzzle(),
     games:createGames(),
     prefs:{theme:'light',accent:'lc',showMetrics:true,displayName:'Lucca'},
@@ -498,6 +501,8 @@ export function timestampUrl(url,position) {
 export function timerElapsed(timer, now=Date.now()) {
   return Math.max(0, timer.elapsedMs + (timer.running ? Math.max(0,now-timer.startedAt) : 0));
 }
+export function pauseElapsed(timer,now=Date.now()){return !timer.running&&timer.pause?.startedAt!=null?Math.max(0,now-timer.pause.startedAt):0;}
+export function totalPauseElapsed(timer,now=Date.now()){return (timer.pausedMs||0)+pauseElapsed(timer,now);}
 export function pauseTimer(timer, now=Date.now()) {
   return {...timer,elapsedMs:timerElapsed(timer,now),startedAt:null,running:false,pause:timer.running?{...emptyPause(),startedAt:now}:(timer.pause||emptyPause())};
 }
@@ -505,10 +510,10 @@ export function emptyPause(){return {startedAt:null,minutes:'',endsAt:null,notif
 export function resumeTimer(timer,now=Date.now()){
   timer=completeTimer(timer,now);
   if(timerFinished(timer,now))timer={...timer,mode:'stopwatch',targetMinutes:'',deadline:null,targetNotified:false,alertDismissed:false};
-  return timer.running?timer:{...timer,running:true,startedAt:now,pause:emptyPause()};
+  return timer.running?timer:{...timer,running:true,startedAt:now,pausedMs:totalPauseElapsed(timer,now),pause:emptyPause()};
 }
 export function resetTimer(timer){
-  return {...timer,running:false,startedAt:null,elapsedMs:0,targetNotified:false,deadline:null,alertDismissed:false,pause:emptyPause()};
+  return {...timer,running:false,startedAt:null,elapsedMs:0,pausedMs:0,targetNotified:false,deadline:null,alertDismissed:false,pause:emptyPause()};
 }
 export function setPauseReminder(timer,minutes,now=Date.now()){
   if(timer.running||timer.pause?.startedAt==null)throw new Error('Pause a sessão antes de definir um lembrete.');
@@ -554,6 +559,8 @@ export function validateState(input) {
   const collections=['customTerms','areas','materials','columns','tasks','books','notes','sessions','discoveries','documents'];
   for (const key of collections) if (!Array.isArray(input[key]) || input[key].length>10000) fail();
   const string=(v,max=200000)=>typeof v==='string' && v.length<=max;
+  if(input.studyGroups!==undefined&&(!Array.isArray(input.studyGroups)||input.studyGroups.length>10000||input.studyGroups.some(g=>!g||!string(g.name,100)||!g.name.trim()||!string(g.division,100)||!g.division.trim())))fail();
+  for(const a of input.areas)if(a.subgroup!==undefined&&!string(a.subgroup,100))fail();
   const ids=new Set();
   for(const key of collections) for(const item of input[key]) {
     if(!item || !string(item.id,200) || !/^[A-Za-z0-9_-]+$/.test(item.id) || ids.has(item.id)) fail();
@@ -582,8 +589,10 @@ export function validateState(input) {
   for(const t of input.tasks)if(t.documentId!==undefined&&!ref(t.documentId,documentIds))fail();
   const numberText=v=>string(v,30) && (v==='' || (Number.isFinite(Number(v)) && Number(v)>=0));
   for(const b of input.books) if(!string(b.title,500)||!b.title.trim()||!string(b.author,500)||!['','Quero ler','Lendo','Pausado','Lido'].includes(b.status)||!numberText(b.page)||!numberText(b.total)||!string(b.chapter,500)||!ref(b.areaId,areaIds)||(b.total!==''&&Number(b.total)<=0)||(b.page!==''&&b.total!==''&&Number(b.page)>Number(b.total))) fail();
-  for(const n of input.notes) {
+  for(const n of input.notes.flatMap(n=>n.visual?[n,n.visual]:[n])) {
     if(n.videoUrl!==undefined&&(!string(n.videoUrl,4000)||(n.videoUrl&&!safeUrl(n.videoUrl))))fail();
+    if(n.sourceUrl!==undefined&&(!string(n.sourceUrl,4000)||(n.sourceUrl&&!safeUrl(n.sourceUrl))))fail();
+    if(n.sourceTitle!==undefined&&!string(n.sourceTitle,500))fail();
     if(n.videoPosition!==undefined&&!string(n.videoPosition,50))fail();
     if(n.documentId!==undefined&&!ref(n.documentId,documentIds))fail();
     if(n.discoveryId!==undefined&&!ref(n.discoveryId,discoveryIds))fail();
@@ -610,12 +619,15 @@ export function validateState(input) {
   if(!t||typeof t.running!=='boolean'||!ref(t.areaId,areaIds)||!ref(t.bookId,bookIds)||!Number.isFinite(t.elapsedMs)||t.elapsedMs<0||!numberText(t.targetMinutes)||(t.targetMinutes!==''&&Number(t.targetMinutes)<=0)||!(t.startedAt===null||Number.isFinite(t.startedAt))||(t.running&&t.startedAt===null)) fail();
   if(!p||!['light','dark','system'].includes(p.theme)||!['lc','petroleum','jade','plum'].includes(p.accent)||typeof p.showMetrics!=='boolean'||!string(input.dictionaryUrl,4000)||(input.dictionaryUrl&&!safeUrl(input.dictionaryUrl))||!string(input.updatedAt,100)) fail();
   if(p.displayName!==undefined&&!string(p.displayName,100))fail();
+  validateSpaces(input,fail);
   const checked=structuredClone(input);
   if(checked.puzzle===undefined)checked.puzzle=createPuzzle();
   if(!validPuzzle(checked.puzzle))fail();
   if(checked.games===undefined)checked.games=createGames();
   if(!validGames(checked.games))fail();
+  checked.studyGroups??=defaultStudyGroups();
   const timer=checked.timer;
+  timer.pausedMs??=0;if(!Number.isFinite(timer.pausedMs)||timer.pausedMs<0)fail();
   if(timer.targetNotified===undefined)timer.targetNotified=false;
   if(timer.mode===undefined)timer.mode='stopwatch';
   if(timer.deadline===undefined)timer.deadline=null;

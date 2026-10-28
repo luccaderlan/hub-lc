@@ -1,5 +1,15 @@
 # Retomada: Hub LC online em duas máquinas
 
+## Estado de produto atualizado em 28/10/2026
+
+O [plano de Biblioteca e espaços individuais](PLANO-BIBLIOTECA-E-ESPACOS.md) foi implementado localmente: Biblioteca independente, espaços próprios, capas opcionais, galerias separadas da escrita, tópicos, quadros e materiais. Registros continuam em `hub-lc:v1`; todos os bytes reutilizam o IndexedDB `hub-lc:pdfs` / `files`, identificados por SHA-256. Não renomear ou apagar essas bases em uma futura migração.
+
+Os objetos `book.space` / `note.space` guardam descrição, imagens, materiais e tópicos; `book.cover` referencia a capa; `note.visual` preserva o quadro de uma nota de texto sem alterar seu corpo, destaques ou ID. Murais existentes continuam como registros `kind: canvas`. Arquivos adicionados em um espaço não pertencem automaticamente ao catálogo de Estudos. Uma referência não transfere o pertencimento da fonte.
+
+O backup completo inclui os novos arquivos e referências; o backup só de registros conserva referências recuperáveis pelo original. A restauração valida registros, formatos, tamanho, hash e decodificação/dimensões de imagens antes da substituição. A importação substitui, não mescla. Remover anexos dos espaços conserva os bytes; considerar esse comportamento na futura política de armazenamento.
+
+Arquivos públicos incluem o novo módulo `spaces.js`. Reinicie `server.cjs` após atualizar a lista permitida. A CSP permite `blob:` nas imagens locais. Nenhuma publicação, autenticação ou sincronização foi iniciada nesta entrega. Os registros abaixo continuam como contexto de hospedagem de 14/10.
+
 Registrado em 14/10/2026 a pedido do usuário, para continuar em outro chat.
 
 ## Objetivo
@@ -54,3 +64,9 @@ Leia CONTEXTO-HOSPEDAGEM.md neste projeto e continue a preparação do Hub LC pa
 - Esta cópia é apenas do código: não contém as anotações e PDFs guardados no navegador. O backup completo desses dados continua obrigatório antes da migração.
 - O hPanel foi aberto no navegador do Codex e redirecionou para `https://auth.hostinger.com/login`. O usuário precisa entrar nessa aba para permitir a inspeção do plano. Nenhum recurso da conta foi confirmado.
 - Próxima ação: após o login, verificar o plano associado a `g8creative.com`, as opções para subdomínios, PHP/Node.js, banco de dados, armazenamento privado, limites de upload e HTTPS. Só então escolher e implementar a arquitetura. Ainda não houve publicação ou migração.
+
+## Reformulação de Estudos — 28/10/2026
+
+Incluir `study-catalog.js` entre os arquivos públicos na hospedagem; o servidor local já permite o módulo. Não é necessário reescrever rotas no servidor: os destinos continuam usando fragmentos (`#areas/<id>`). Reinicie o servidor de desenvolvimento se sua instância anterior ainda usar a lista antiga de módulos. A entrega não altera localStorage/IndexedDB nem o esquema de backup; preferências transitórias de catálogo, filtros, retorno e rolagem ficam em `hub-lc:studies` no sessionStorage.
+
+Preservar os arquivos e alterações locais dos espaços de livros/anotações. O plano implementado está em PLANO-ESTUDOS-NAVEGACAO.md; a evolução de subtemas não faz parte desta versão.
