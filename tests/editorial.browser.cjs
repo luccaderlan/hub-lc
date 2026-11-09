@@ -14,7 +14,7 @@ module.exports=async({browser,origin,out})=>{
       s.notes.push(direct,indirect,note('Maturidade intelectual em Kant','Autonomia, razão prática e os limites do conhecimento.',philosophy),note('Uma leitura reservada','Não aparece no início.',java,'',s.books[0].id));
       s.sessions.push({id:uid(),areaId:java,bookId:'',minutes:32,date:'2026-10-26',summary:'Classes, objetos e construtores',next:'Praticar construtores'});
       const task={id:uid(),title:'Praticar construtores',areaId:java,columnId:s.columns[1].id,kind:'Estudo',details:'',duration:'',due:''};s.tasks.push(task);
-      localStorage.setItem(STORAGE_KEY,JSON.stringify(s));return {java,taskId:task.id,doneId:s.columns[3].id,directId:direct.id,indirectId:indirect.id};
+      s.dayPlanning={completionColumnId:s.columns[3].id,reopenColumnId:s.columns[1].id};localStorage.setItem(STORAGE_KEY,JSON.stringify(s));return {java,taskId:task.id,doneId:s.columns[3].id,directId:direct.id,indirectId:indirect.id};
     });
     await page.reload();assert.match(await page.locator('h1').innerText(),/Lucca/);
     assert.match(await page.locator('.resume-description').innerText(),/Praticar construtores/);
@@ -28,7 +28,7 @@ module.exports=async({browser,origin,out})=>{
     await page.reload();assert.equal(await page.locator('[data-filter=area]').inputValue(),fixture.java);
     await nav('home');await page.locator('.resume-primary').click();assert.equal(await page.locator('.study-heading h1').innerText(),'Java');
     await nav('home');await page.locator('[data-action=home-division]').filter({hasText:'Filosofia'}).click();assert.equal(await page.locator('.study-heading h1').innerText(),'Filosofia');
-    await nav('home');await page.locator('[data-action=quick-note]').first().click();await page.locator('[name=title]').fill('Aprender com minhas palavras');await page.locator('[name=body]').fill('Aprender melhor é conseguir explicar com as próprias palavras.');await submit();
+    await nav('home');await page.locator('[data-action=quick-note]').first().click();await page.locator('[name=title]').fill('Aprender com minhas palavras');await page.locator('#editor-form [name=body]').fill('Aprender melhor é conseguir explicar com as próprias palavras.');await submit();
     assert.equal(await page.locator('#main').getAttribute('data-page'),'home');
     assert.match(await page.locator('.idea-paper').innerText(),/Aprender melhor/);
     await page.reload();await page.locator('.idea-paper').click();assert.equal(await page.locator('#note-body').inputValue(),'Aprender melhor é conseguir explicar com as próprias palavras.');

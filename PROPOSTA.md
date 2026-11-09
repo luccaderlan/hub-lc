@@ -12,7 +12,7 @@ Conceito inicial de 13/10/2026; planejamento atualizado em 28/10/2026. Este docu
 
 Aplicação local com áreas e conteúdos editáveis, quadro com colunas personalizáveis, biblioteca de livros físicos, anotações de texto e murais com post-its, cronômetro e sessões opcionais, evolução, aparência e backups em JSON. Os livros indicados foram incluídos sem status ou progresso pré-definidos, conforme solicitado.
 
-Os dados ficam no navegador e endereço usados, com exportação e importação para preservação e transferência. Não há publicação nem sincronização entre dispositivos nesta etapa. O Dicionário DEV permite consultar no hub a cópia dos 330 registros importados do Notion em 13/10/2026, pesquisar seus campos, filtrar por categoria e abrir os originais. Sincronização automática, trilhas com sequências de conteúdos e recursos de revisão voluntária permanecem como próximas etapas.
+Os dados ficam no navegador e endereço usados, com exportação e importação para preservação e transferência. Não há publicação nem sincronização entre dispositivos nesta etapa. Sincronização automática, trilhas com sequências de conteúdos e recursos de revisão voluntária permanecem como próximas etapas.
 
 Decisão de organização de 13/10/2026: livros ficam exclusivos da Biblioteca, com vínculos opcionais em Sessões e Anotações para registrar leituras. Destaques, nomes de livros e estatísticas de leitura saem da tela inicial e da Evolução. Áreas e conteúdos usam a hierarquia Divisão → Área → Conteúdo: TI reúne as áreas técnicas; Filosofia, Neurociência e Espiritualidade têm divisões próprias. Divisões adicionais podem ser criadas ao cadastrar ou editar uma área. A migração preserva os cadastros anteriores.
 
@@ -33,7 +33,6 @@ Manter uma rotina de estudos e desenvolvimento pessoal, incluindo formação té
 - “Despertar” significa, para o usuário, despertar espiritual e “atingir conhecimentos guardados dentro de nós”. Essa descrição orienta uma área de leituras e reflexões pessoais; autores, tradições e caminhos permanecem abertos à escolha.
 - Livros físicos: organizar leituras e estudar, com status, ponto de retomada, anotações, trechos e reflexões.
 - Método anterior: videoaulas, anotações no caderno e exercícios de revisão.
-- Dicionário existente no Notion, identificado como Dicionário DEV.
 - Bora na Tech é apenas uma referência interna para o projeto. Não exibir sua marca, links, chamadas ou direcionamentos na interface.
 
 ## Estrutura proposta
@@ -54,7 +53,7 @@ Divisões agrupam áreas, que agrupam conteúdos: TI → Java → Collections; T
 
 Espaço próprio para capturar vídeos, artigos, podcasts e links que despertaram curiosidade. O fluxo começa com um link; título, primeira ideia e organização podem vir depois. Cada descoberta tem uma página para guardar o que chamou atenção, registrar pontos importantes com um momento ou referência, escrever anotações e murais e criar uma atividade no quadro quando houver uma ação a experimentar.
 
-Uma descoberta pode se conectar a várias áreas, preservando um único cadastro e seus registros. Conexões confirmadas são escolhidas pelo usuário. Possíveis conexões são sugeridas por palavras do título, palavras-chave, pontos importantes e anotações: “memória” pode sugerir Neurociência; “API” pode sugerir APIs e oferecer o termo do Dicionário DEV. As áreas mostram essas descobertas com o rótulo de possível conexão enquanto o vínculo não foi confirmado. O dicionário também oferece o caminho de volta às descobertas em que um termo aparece.
+Uma descoberta pode se conectar a várias áreas, preservando um único cadastro e seus registros. Conexões confirmadas são escolhidas pelo usuário. Possíveis conexões são sugeridas por palavras do título, palavras-chave, pontos importantes e anotações: “memória” pode sugerir Neurociência; “API” pode sugerir APIs. As áreas mostram essas descobertas com o rótulo de possível conexão enquanto o vínculo não foi confirmado.
 
 Exemplo de uso: salvar um vídeo sobre aprendizado, registrar “08:42 — uma ideia que quero experimentar”, desenvolver uma reflexão em Anotações, confirmar a ligação com Neurociência e criar uma atividade no Quadro. Em vídeos do YouTube, o ponto abre a fonte no momento registrado. Capturas duplicadas abrem a descoberta já existente.
 
@@ -91,7 +90,7 @@ Cada cartão representa uma ação concreta, com objetivo, conteúdo, tipo (aula
 
 ### Anotações
 
-Espaços para escrita de texto e código, com imagens em galeria separada, referências em Materiais e um quadro visual próprio para post-its e conexões, conforme o plano de 28/10/2026. O primeiro protótipo deve representar os dois formatos para avaliar sua importância na experiência; não é necessário reproduzir todas as funções do Miro. Notas podem se vincular a conteúdos, atividades, projetos e termos do dicionário, ou existir soltas e ser organizadas depois. A possibilidade de manter o caderno como parte do fluxo ainda deve ser discutida.
+Espaços para escrita de texto e código, com imagens em galeria separada, referências em Materiais e um quadro visual próprio para post-its e conexões, conforme o plano de 28/10/2026. O primeiro protótipo deve representar os dois formatos para avaliar sua importância na experiência; não é necessário reproduzir todas as funções do Miro. Notas podem se vincular a conteúdos, atividades e projetos, ou existir soltas e ser organizadas depois. A possibilidade de manter o caderno como parte do fluxo ainda deve ser discutida.
 
 ### Sessões e planejamento
 
@@ -151,7 +150,7 @@ Fonte: [States of Curiosity Modulate Hippocampus-Dependent Learning via the Dopa
 
 Karpicke e Blunt (2011) observaram benefícios de recuperar conhecimento de memória em comparação com outras condições de estudo de textos científicos, inclusive em questões de compreensão e inferência. A extensão para programação é uma aplicação proposta, não um resultado testado nesse estudo.
 
-Aplicação proposta: oferecer perguntas pessoais nas notas, tentativa de explicar antes de revelar a resposta e exercícios escolhidos pelo usuário. No dicionário, permitir ocultar o significado e depois comparar a própria resposta. No quadro visual, permitir reconstruir um mapa de memória e conferir posteriormente. Esses recursos não condicionam o uso normal das notas.
+Aplicação proposta: oferecer perguntas pessoais nas notas, tentativa de explicar antes de revelar a resposta e exercícios escolhidos pelo usuário. No quadro visual, permitir reconstruir um mapa de memória e conferir posteriormente. Esses recursos não condicionam o uso normal das notas.
 
 Fonte: [Retrieval Practice Produces More Learning than Elaborative Studying with Concept Mapping](https://pubmed.ncbi.nlm.nih.gov/21252317/).
 
@@ -177,12 +176,6 @@ No protótipo, verificar se o usuário encontra uma ação que deseja executar, 
 - Ausência de registros não aparece como fracasso ou como zero aprendizado.
 - O espaço visual e o editor de texto podem ser usados sem vínculo obrigatório a uma matéria.
 
-### Dicionário DEV
-
-O banco consultado no Notion possui Palavra, Categoria, Significado, Comparação e Exemplo, além de campos de data e lugar.
-
-Implementado: Notion como origem, com cópia local dos 330 registros consultados em 13/10/2026. É possível pesquisar Palavra, Categoria, Significado, Comparação e Exemplo; filtrar por categoria; abrir comparações e exemplos; e acessar o item original. Campos ausentes e entradas com títulos parecidos são preservados. A atualização desta cópia ocorre sob demanda, sem sincronização automática. Vínculos de termos com conteúdos e notas e uma integração contínua continuam como possibilidades futuras.
-
 ## Conteúdos iniciais sugeridos
 
 O hub deve permitir identificar o que já foi estudado no Roadmap e começar por lacunas e aprofundamento, sem exigir reinício do zero.
@@ -207,7 +200,6 @@ As referências ao Bora na Tech abaixo são registros internos de pesquisa. A in
 - [Dev.java — Learn Java](https://dev.java/learn/): fonte oficial para conteúdos de Java.
 - [Spring — Guides](https://spring.io/guides/): fonte oficial para consultar guias por categoria.
 - [PostgreSQL — Tutorial](https://www.postgresql.org/docs/current/tutorial.html): fonte oficial de SQL e conceitos relacionais.
-- [Dicionário DEV](https://app.notion.com/p/20cd91979b44489d96ffa4fe7b6c6c79?pvs=204): base pessoal existente.
 
 Foram consultados o catálogo público de roadmaps, o mapa de áreas, as páginas de projetos e cursos. As páginas individuais de backend, engenharia de software e banco de dados não retornaram conteúdo legível pela ferramenta de pesquisa. A sequência de temas acima é uma proposta própria, não uma reprodução dessas trilhas. Não houve importação ou integração automática com o Bora na Tech.
 

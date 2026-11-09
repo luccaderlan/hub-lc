@@ -9,15 +9,24 @@ module.exports=async({browser,origin,out})=>{
  const stored=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('hub-lc:v1')));
  try{
   await page.goto(origin+'/#areas');
+  assert.equal(await page.locator('[data-view=dictionary]').count(),0);
+  const initial=await stored();
+  await page.evaluate(()=>{
+    const s=JSON.parse(localStorage.getItem('hub-lc:v1'));
+    Object.assign(s,{customTerms:[{id:'personal-term',word:'Privado'}],hiddenTerms:['https://example.org/term'],dictionaryUrl:'https://example.org/private'});
+    localStorage.setItem('hub-lc:v1',JSON.stringify(s));
+    sessionStorage.setItem('hub-lc:workspace',JSON.stringify({view:'dictionary',dictionaryCategory:'Pessoal'}));
+    history.replaceState(null,'','#dictionary');
+  });
+  await page.reload();await page.locator('#main[data-page=home]').waitFor();
+  const migrated=await stored();
+  for(const key of ['customTerms','hiddenTerms','dictionaryUrl'])assert.equal(Object.hasOwn(migrated,key),false);
+  for(const key of ['areas','books','notes','materials','discoveries','documents'])assert.deepEqual(migrated[key],initial[key]);
+  await navigate(page,'settings');assert.doesNotMatch(await page.locator('#main').innerText(),/dicionário|notion/i);
+  await navigate(page,'areas');
   assert.equal(await page.locator('.study-material').count(),0);await action('study-all');
   assert.equal(await page.locator('.study-material').count(),4);
   await page.locator('[data-action=study-kind][data-kind=references]').click();assert.equal(await page.locator('.study-material').count(),4);assert.equal(await page.locator('.study-section').count(),0);
-  await navigate(page,'dictionary');await action('new-term');
-  await page.locator('[name=word]').fill('Meu novo conceito');await page.locator('[name=meaning]').fill('Um significado pessoal');await submit();
-  assert.equal(await page.locator('.term-card').count(),1);await page.reload();assert.match(await page.locator('.term-card').innerText(),/Um significado pessoal/);
-  await action('delete-term');await submit();assert.equal((await stored()).customTerms.length,0);
-  await action('clear-filters');const removedWord=await page.locator('.term-card h2').first().innerText();await action('delete-term');await submit();
-  await page.reload();assert.equal((await stored()).hiddenTerms.length,1);assert.notEqual(await page.locator('.term-card h2').first().innerText(),removedWord);
   await navigate(page,'documents');
   await page.locator('#pdf-file').setInputFiles([{name:'leitura.md',mimeType:'text/markdown',buffer:Buffer.from('# Leitura')},{name:'ideias.txt',mimeType:'text/plain',buffer:Buffer.from('Meu texto')}]);
   await page.locator('[data-document-text]').waitFor();await action('all-documents');await page.locator('[data-filter=document-type]').selectOption('md');
@@ -61,6 +70,6 @@ module.exports=async({browser,origin,out})=>{
   await action('all-books');await page.locator('.book').nth(1).locator('[data-action=open-book]').first().click();await page.locator('[data-action=book-tab][data-tab=notebook]').click();assert.equal(await page.locator('#book-journal').inputValue(),'');assert.equal(await page.locator('.book-record').count(),0);
   await page.locator('[data-action=book-tab][data-tab=canvas]').click();assert.equal(await page.locator('.sticky').count(),0);
   assert.deepEqual(errors,[]);
-  return 'estudos: catálogo separado do acervo unificado, filtro de formato persistido, dicionário pessoal, livros isolados com caderno/retomada/notas/murais e layouts em dois temas de 320 a 1440 px';
+  return 'estudos: catálogo separado do acervo unificado, filtro de formato persistido, remoção do dicionário com migração dos dados antigos, livros isolados com caderno/retomada/notas/murais e layouts em dois temas de 320 a 1440 px';
  }catch(e){await page.screenshot({path:path.join(out,'reading-failure.png'),fullPage:true});throw e;}finally{await context.close();}
 };

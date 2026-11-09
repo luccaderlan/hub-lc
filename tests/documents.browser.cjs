@@ -51,3 +51,5 @@ module.exports=async({browser,origin,out})=>{
   }catch(err){await page.screenshot({path:path.join(out,'document-failure.png'),fullPage:false});throw err;}
   finally{await context.close();}
 };
+
+module.exports.fixturePdf=fixturePdf;

@@ -1,25 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createInitial,validateState,dictionarySnapshot,dictionaryTerms,discoveryConnections,makeDiscovery} from '../data.js';
+import {createInitial,validateState,makeDiscovery} from '../data.js';
 import {studyMarkdown} from '../study-export.js';
 
-test('dicionário pessoal preserva inclusões e exclusões no backup e atualiza conexões',()=>{
-  const s=createInitial(),original=dictionarySnapshot.terms[0];
-  s.hiddenTerms.push(original.url);
-  s.customTerms.push({id:'my-term',word:'Termo pessoal',category:'Meus termos',meaning:'Uma definição',comparison:'',example:'',url:''});
-  const restored=validateState(JSON.parse(JSON.stringify(s))),terms=dictionaryTerms(restored);
-  assert.equal(terms.some(t=>t.url===original.url),false);
-  assert.equal(terms.find(t=>t.id==='my-term').meaning,'Uma definição');
-  const d=makeDiscovery('https://example.org','Termo pessoal');
-  assert.equal(discoveryConnections(d,s.areas,[],terms).terms.some(t=>t.id==='my-term'),true);
-  s.customTerms[0].url='javascript:alert(1)';assert.throws(()=>validateState(s));
-});
-
-test('backups antigos recebem coleções pessoais vazias; entradas inválidas são rejeitadas',()=>{
-  const s=createInitial();delete s.customTerms;delete s.hiddenTerms;
-  assert.deepEqual(validateState(s).customTerms,[]);
-  assert.equal(dictionaryTerms(validateState(s)).length,dictionarySnapshot.terms.length);
-  s.hiddenTerms=['https://example.org'];assert.throws(()=>validateState(s));
+test('backups antigos descartam o dicionário e preservam os demais registros',()=>{
+  const s=createInitial();
+  s.discoveries.push(makeDiscovery('https://example.org','Meu estudo'));
+  const expected=validateState(structuredClone(s));
+  Object.assign(s,{customTerms:[{id:'my-term',word:'Termo pessoal',meaning:'Definição pessoal'}],hiddenTerms:['https://example.org/term'],dictionaryUrl:'https://example.org/private'});
+  const restored=validateState(JSON.parse(JSON.stringify(s)));
+  assert.deepEqual(restored,expected);
+  for(const key of ['customTerms','hiddenTerms','dictionaryUrl'])assert.equal(Object.hasOwn(restored,key),false);
+  assert.ok(Object.hasOwn(s,'customTerms'));
 });
 
 test('caderno e retomada de cada livro sobrevivem ao backup e à exportação contextual',()=>{

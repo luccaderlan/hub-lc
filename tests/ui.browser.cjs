@@ -11,7 +11,7 @@ module.exports=async({browser,origin,out})=>{
       await nav('settings');await page.locator('[name=pref-theme]').selectOption(theme);
       for(const width of [1440,360]){
         await page.setViewportSize({width,height:1050});
-        for(const view of ['home','areas','documents','discoveries','board','books','notes','sessions','evolution','dictionary','settings']){
+        for(const view of ['home','areas','documents','discoveries','board','books','notes','sessions','evolution','settings']){
           await nav(view);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`${view}: overflow ${theme} ${width}`);
           if(view==='home'){assert.equal(await page.locator('.home-editorial').count(),1);assert.equal(await page.locator('.hero-card').count(),0);}
           if(view==='sessions'){

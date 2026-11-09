@@ -1,8 +1,62 @@
 # Avaliação de UI/UX — Hub LC
 
+
+## Navegação e planejamento — 09/11/2026
+
+Revisão do acabamento após feedback visual: removido o fundo sólido que delimitava um retângulo entre a saudação e Hoje. Fundo transparente e hover por cor foram conferidos nos temas claro/escuro em 1440 e 360 px; o degradê de leitura aparece apenas ao fixar no topo. A suíte dedicada de navegação passou novamente em 320/360/768/1440 px. Capturas em `docs/verificacao-navegacao/abas-home-*.png` e `abas-rolagem-*.png`.
+
+Documentos passa a ter acesso direto na lateral, que conserva seis destinos. Meu espaço reúne Visão geral e Quadro de atividades em abas permanentes **abaixo da saudação e do subtítulo**. O Quadro conserva planejamento geral, colunas e atividades sem data; `#board` permanece válido. Estudos mostra Links e vídeos e Todo o acervo antes dos assuntos, com Sem assunto acessível no acervo global.
+
+A suíte dedicada `node tests/browser.cjs --navigation-only` passou com teclado, histórico, recarga, abas durante a rolagem, documentos sem filtro herdado, download byte a byte, recuperação do original e retorno aos filtros e à posição de uma lista longa. Os dois temas foram verificados em 320, 360, 768 e 1440 px. Em 320 px, o espaçamento móvel foi ajustado para que Documentos apareça inteiro no primeiro trecho do menu.
+
+`npm run check`, os 62 testes de `npm test` e a suíte completa `npm run test:browser` passaram. As regressões incluem compromissos, atividades, livros, notas e murais, sessões, jogos, descobertas, estudos, exportações e restauração de backups. O teste de formatos aguarda o download do arquivo correspondente ao upload atual, evitando confundir a prévia anterior com a conclusão do lote.
+
+Capturas reais de teste em [Meu espaço](docs/verificacao-navegacao/meu-espaco.png), [Quadro](docs/verificacao-navegacao/quadro.png), [Estudos](docs/verificacao-navegacao/estudos.png), [Documentos](docs/verificacao-navegacao/documentos.png) e [celular](docs/verificacao-navegacao/celular.png). São registros sintéticos em contextos isolados de Chrome; não são dados pessoais. Aparelhos físicos, Safari, Firefox e leitores de tela não foram validados. Nenhuma migração dos registros ou dos arquivos foi necessária.
+
+
+## Meu espaço acolhedor — 04/11/2026
+
+Implementação comparada visualmente com `docs/referencias/home-aconchegante-aprovada.png`, em 1672 × 941 px. A composição mantém a lateral com aproximadamente 282 px, conteúdo começando em x≈340, três colunas com divisórias em x≈738/1188, saudação serifada ampla e retomada horizontal. Foram corrigidos o excesso de altura provocado por ações auxiliares, a quebra desnecessária das atividades, um transbordamento do ramo decorativo e o contraste do botão Anotação no tema claro. Os controles adicionais necessários ficam em menus acessíveis ou em ações discretas. O ramo é vetorial e a iluminação é CSS; a imagem aprovada não é usada como fundo.
+
+Capturas selecionadas, produzidas com dados de teste em contexto isolado:
+
+- [Desktop escuro](docs/verificacao-home/desktop-escuro.png) e [desktop claro](docs/verificacao-home/desktop-claro.png).
+- [Celular escuro](docs/verificacao-home/celular-escuro.png) e [celular claro](docs/verificacao-home/celular-claro.png).
+
+As capturas completas `test-results/home-*` cobrem 320, 360, 768, 1440 e 1672 px, com estados vazios, preenchidos, nome longo e listas de 18 registros. Não há rolagem horizontal da página. As áreas se empilham no celular na mesma ordem da referência; a navegação horizontal mantém rolagem própria. Campos móveis usam 16 px e ações da home têm pelo menos 44 px. Filtros, notas recentes e atalhos anteriores continuam abaixo da primeira área.
+
+### Funcionalidade e dados
+
+- Compromissos: criação, edição, exclusão/cancelamento, datas futuras acessíveis pela lista, ordenação e ausência de horário fictício. Falhas de criação e exclusão preservam os dados e deixam o formulário pronto para nova tentativa.
+- Atividades: criação para hoje, seleção por ID sem cópia, prazo independente, conclusão/reabertura nos dois sentidos entre home e Quadro, coluna anterior preservada e configuração explícita. Retirar exige salvar e conserva edições feitas no formulário. Dias anteriores não são reagendados.
+- Ideias: rascunho persiste ao navegar/recarregar; falha mantém o texto e não cria uma anotação parcial. Nova tentativa cria uma anotação normal e limpa o rascunho somente após gravar.
+- Retomada: sessão real com destino ao assunto; nota recente sem sessão retoma a anotação; ausência de histórico oferece explorar Estudos. Nome, saudação e data usam dados e horário locais.
+- Backups: versões completa e só de registros preservam novos campos; importação de backup antigo mantém IDs e vínculos e acrescenta padrões vazios. Arquivo TXT removido do IndexedDB é restaurado pelo backup completo; os testes existentes cobrem os demais arquivos e espaços. Datas impossíveis e associações inválidas são rejeitadas antes da gravação.
+- Virada de dia: teste em `America/Sao_Paulo` verifica 23:59 (já no dia seguinte em UTC) e 00:00; a home muda de dia, sem alterar prazo, planejamento anterior ou rascunho.
+
+### Acessibilidade e regressões
+
+Menus operáveis por Enter/Tab, foco inicial no campo, Escape e retorno de foco, confirmação de exclusão com Cancelar inicialmente focado, checkbox com `aria-checked`, erro com foco e estados textuais. Texto e controles não dependem da decoração nem somente da cor. O ramo fica fora da árvore acessível. A revisão geral encontrou e corrigiu buscas móveis menores que 16 px e botões de grupo menores que 44 px no catálogo de Estudos preservado.
+
+Contraste calculado dos tokens sobre o fundo base: texto principal 9,23:1 (claro) / 11,59:1 (escuro); texto secundário 5,12:1 / 7,30:1; ações 6,37:1 / 8,56:1; contorno de controles 3,04:1 / 4,51:1. O botão superior tem 6,86:1 no claro e pelo menos 6,23:1 nos extremos do gradiente escuro. A leitura também foi inspecionada nas capturas; esses números não substituem auditoria de cada pixel da iluminação.
+
+Comandos reproduzíveis com servidor local ativo (pode-se definir `HUB_LC_ORIGIN` para outra porta):
+
+```sh
+npm run check
+npm test
+npm run test:browser
+node tests/browser.cjs --home-only
+node tests/home-accessibility.browser.cjs
+```
+
+Verificação final em **09/11/2026**: sintaxe válida; **62 testes de dados aprovados**; suíte completa de navegador aprovada, sem erros JavaScript; teste adicional de teclado, contraste e controles móveis aprovado. O [relatório completo](docs/verificacao-home/testes-navegador.json) e os [contrastes](docs/verificacao-home/contraste.json) ficam preservados junto às capturas. Os arquivos de execução também ficam em `test-results/browser-report.json` e `test-results/home-accessibility.json`. O teste editorial passou a declarar a associação de conclusão na fixture, o teste da lateral usa a nova escala da saudação e o campo do modal foi delimitado para não confundir a captura inline. Os testes de descobertas usam a busca do catálogo e abrem o menu contextual antes de acionar os controles correspondentes.
+
+Limites: testes em Chrome headless, com tamanhos móveis emulados; não foram testados aparelhos físicos, Safari, Firefox nem leitores de tela. Não é certificação de acessibilidade. A decoração vetorial interpreta as folhas da referência; não reproduz sua textura fotográfica. Não há novas notificações de compromissos, sincronização, integrações de agenda, recorrência ou calendário mensal. Os dados continuam no navegador e endereço em uso; nenhuma publicação foi realizada.
+
 ## Catálogo e navegação de Estudos — 28/10/2026
 
-A entrada de Estudos agora apresenta áreas, grupos e assuntos, sem carregar materiais. Um link abre o assunto em endereço próprio, com caminho de retorno e lista única de Referências, Documentos, Links e vídeos e Anotações. Ações secundárias concentram edição e Markdown. Todo o acervo, Sem assunto e Dicionário continuam alcançáveis. O cadastro de cada tipo permite manter ou alterar o assunto sugerido.
+A entrada de Estudos agora apresenta áreas, grupos e assuntos, sem carregar materiais. Um link abre o assunto em endereço próprio, com caminho de retorno e lista única de Referências, Documentos, Links e vídeos e Anotações. Ações secundárias concentram edição e Markdown. Todo o acervo e Sem assunto continuam alcançáveis. O cadastro de cada tipo permite manter ou alterar o assunto sugerido.
 
 O painel Trocar assunto ocupa 320 px no desktop e se sobrepõe ao acervo. Hover abre após 200 ms; a travessia tem tolerância de 260 ms; clique fixa o painel. No celular, `dialog.showModal()` contém o foco e torna o fundo inerte. Escape e Fechar devolvem foco ao gatilho, e navegar foca o título. O assunto atual fica destacado e seus ancestrais são expandidos ao abrir o painel; recolher grupos no painel não altera o catálogo. Temporizadores de hover verificam se o painel ainda pertence à tela atual e se foi fixado por clique.
 

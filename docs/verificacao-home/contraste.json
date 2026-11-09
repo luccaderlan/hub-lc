@@ -1,0 +1,26 @@
+[
+  {
+    "theme": "light",
+    "contrast": {
+      "body": 9.226042117518048,
+      "muted": 5.121675998544611,
+      "action": 6.374082895878848,
+      "control": 3.0390066364167785,
+      "createText": "rgb(255, 255, 255)",
+      "createBackground": "rgb(116, 67, 161)",
+      "button": 6.862510763122203
+    }
+  },
+  {
+    "theme": "dark",
+    "contrast": {
+      "body": 11.592753372309792,
+      "muted": 7.296080289494947,
+      "action": 8.558082868337117,
+      "control": 4.514592992917357,
+      "createText": "rgb(39, 24, 47)",
+      "createBackground": "rgba(0, 0, 0, 0)",
+      "button": 6.227852344143629
+    }
+  }
+]

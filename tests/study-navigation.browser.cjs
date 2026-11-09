@@ -54,7 +54,7 @@ module.exports=async({browser,origin,out})=>{
     await page.screenshot({path:path.join(out,`studies-subject-${theme}-${width}.png`)});
    }
   }
-  await page.setViewportSize({width:1440,height:1000});await catalog();await action('study-unassigned');assert.equal(await heading(),'Sem assunto');await action('study-catalog');await action('study-all');assert.ok(await page.locator('.study-material').count()>=8);assert.equal(await page.locator('.study-global-links [data-view=documents]').count(),1);
+  await page.setViewportSize({width:1440,height:1000});await catalog();await action('study-all');await action('study-unassigned');assert.equal(await heading(),'Sem assunto');await action('study-catalog');await action('study-all');assert.ok(await page.locator('.study-material').count()>=8);assert.equal(await page.locator('.study-global-links [data-view=documents]').count(),1);
   await page.goto(origin+'/#areas/assunto-inexistente');assert.equal(await page.locator('.study-catalog').count(),1);assert.match(await page.locator('#toast').innerText(),/não está mais disponível/);
   // Um endereço copiado resolve o assunto sem depender do estado de navegação da aba.
   const copied=await context.newPage();await copied.goto(origin+'/'+javaRoute);assert.match(await copied.locator('h1').innerText(),/Java com nome longo/);await copied.close();

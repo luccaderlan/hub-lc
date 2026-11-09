@@ -35,7 +35,6 @@ module.exports=async({browser,origin,out})=>{
     await page.locator('[name=title]').fill('Reflexão revisada');await submit();assert.equal((await stored()).notes[0].title,'Reflexão revisada');
     await page.locator('.individual-note-head [data-action=quick-delete]').click();assert.equal(await page.locator('.dialog-footer [data-action=close-dialog]').evaluate(el=>el===document.activeElement),true);
     await page.keyboard.press('Enter');await page.locator('#editor').waitFor({state:'hidden'});assert.equal((await stored()).notes.length,1);
-    await nav('dictionary');await action('more-terms');assert.equal(await page.locator('.term-card h2').nth(24).evaluate(el=>el===document.activeElement),true);
     // Touch targets and long data fit narrow screens; expanded canvas isolates background.
     await nav('notes');await action('new-canvas');await page.locator('[name=title]').fill('Mural de investigação');await submit();await action('new-sticky');await action('canvas-expand');
     assert.equal(await page.locator('.sidebar').evaluate(el=>el.inert),true);await page.keyboard.press('Escape');assert.equal(await page.locator('.sidebar').evaluate(el=>el.inert),false);
@@ -43,7 +42,7 @@ module.exports=async({browser,origin,out})=>{
       await nav('settings');await page.locator('[name=pref-theme]').selectOption(theme);
       for(const width of [320,360,768]){
         await page.setViewportSize({width,height:900});
-        for(const view of ['home','areas','documents','discoveries','board','books','notes','sessions','evolution','dictionary','settings']){
+        for(const view of ['home','areas','documents','discoveries','board','books','notes','sessions','evolution','settings']){
           await nav(view);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`${view}, ${theme}, ${width}: overflow`);
           const invalid=await page.locator('input:not([type=file]),select,textarea').evaluateAll(els=>els.filter(el=>el.getClientRects().length&&!el.closest('.sticky')&&parseFloat(getComputedStyle(el).fontSize)<16).map(el=>el.outerHTML.slice(0,100)));
           assert.deepEqual(invalid,[],`${view}: campo com texto pequeno`);

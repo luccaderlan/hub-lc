@@ -1,5 +1,9 @@
 # Retomada: Hub LC online em duas máquinas
 
+## Estado de produto atualizado em 04/11/2026
+
+A primeira entrega de [Meu espaço acolhedor](PLANO-HOME-ACONCHEGANTE.md) foi implementada localmente. Compromissos, associação das colunas de conclusão, planejamento das atividades e rascunho da captura integram os backups existentes. Não houve mudança de chave/banco, servidor, publicação, sincronização ou serviço de notificações de compromissos. O histórico de hospedagem abaixo permanece como planejamento separado.
+
 ## Estado de produto atualizado em 28/10/2026
 
 O [plano de Biblioteca e espaços individuais](PLANO-BIBLIOTECA-E-ESPACOS.md) foi implementado localmente: Biblioteca independente, espaços próprios, capas opcionais, galerias separadas da escrita, tópicos, quadros e materiais. Registros continuam em `hub-lc:v1`; todos os bytes reutilizam o IndexedDB `hub-lc:pdfs` / `files`, identificados por SHA-256. Não renomear ou apagar essas bases em uma futura migração.

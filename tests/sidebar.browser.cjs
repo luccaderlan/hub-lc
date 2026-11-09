@@ -7,7 +7,7 @@ module.exports=async({browser,origin,out})=>{
   try{
     await page.goto(origin);
     assert.equal(await toggle().getAttribute('aria-expanded'),'true');
-    const size=await page.locator('.home-heading h1').evaluate(el=>parseFloat(getComputedStyle(el).fontSize));assert.ok(size>58&&size<62,`Título compacto: ${size}`);
+    const size=await page.locator('.home-heading h1').evaluate(el=>parseFloat(getComputedStyle(el).fontSize));assert.ok(size>=68&&size<=70,`Saudação ampla da home: ${size}`);
     const before=await page.evaluate(()=>localStorage.getItem('hub-lc:v1'));
     await toggle().focus();await page.keyboard.press('Enter');
     assert.equal(await toggle().getAttribute('aria-expanded'),'false');
@@ -31,7 +31,7 @@ module.exports=async({browser,origin,out})=>{
         if((await toggle().getAttribute('aria-expanded')==='false')!==collapsed)await toggle().click();
         for(const width of [1440,1024,768,360,320]){
           await page.setViewportSize({width,height:1000});
-          for(const view of ['home','areas','documents','discoveries','books','dictionary','board','notes','sessions','puzzle','evolution','settings']){
+          for(const view of ['home','areas','documents','discoveries','books','board','notes','sessions','puzzle','evolution','settings']){
             await nav(view);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`${view}: ${theme}, ${collapsed}, ${width}`);
             assert.equal(await toggle().getAttribute('aria-expanded'),String(!collapsed));
           }

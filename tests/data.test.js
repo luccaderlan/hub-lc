@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createInitial,validateState,safeUrl,timerElapsed,pauseTimer,percentages,readState,writeState,STORAGE_KEY,dictionarySnapshot,makeDiscovery,discoveryConnections,timestampUrl,inspectPdf,decodePdfBackup,MAX_PDF_BYTES,adjustHighlights} from '../data.js';
+import {createInitial,validateState,safeUrl,timerElapsed,pauseTimer,percentages,readState,writeState,STORAGE_KEY,makeDiscovery,discoveryConnections,timestampUrl,inspectPdf,decodePdfBackup,MAX_PDF_BYTES,adjustHighlights} from '../data.js';
 
 test('primeiro acesso permite estudar sem horários, metas ou status de leitura impostos',()=>{
   const s=createInitial();assert.doesNotThrow(()=>validateState(s));
@@ -84,16 +84,6 @@ test('backups anteriores recebem divisões sem perder IDs, vínculos ou dados pe
   }
 });
 
-test('cópia do Notion preserva termos distintos e links válidos sem preencher campos ausentes',()=>{
-  const terms=dictionarySnapshot.terms;
-  assert.equal(terms.length,330);
-  assert.equal(new Set(terms.map(t=>t.url)).size,terms.length);
-  assert.ok(terms.every(t=>safeUrl(t.url)&&['word','category','meaning','comparison','example'].every(key=>typeof t[key]==='string')));
-  assert.ok(terms.some(t=>t.word==='API'));
-  assert.ok(terms.some(t=>t.word==='API (Application Programming Interface)'));
-  assert.ok(terms.some(t=>t.word===''));
-});
-
 test('captura permite só um link, identifica plataformas de vídeo e não aceita URLs executáveis',()=>{
   const d=makeDiscovery(' https://youtu.be/example ');
   assert.equal(d.title,'youtu.be');assert.equal(d.kind,'Vídeo');assert.equal(d.url,'https://youtu.be/example');
@@ -110,13 +100,12 @@ test('ligações indiretas usam palavras completas do texto, pontos e notas, sem
   assert.ok(c.suggested.some(x=>x.area.name==='Neurociência'));
   assert.ok(c.suggested.some(x=>x.area.name==='APIs'));
   assert.ok(c.suggested.some(x=>x.area.name==='PostgreSQL'));
-  assert.ok(c.terms.some(t=>t.word==='API'));
   assert.deepEqual(d.areaIds,[]);assert.deepEqual(c.confirmed,[]);
   d.areaIds.push(s.areas.find(a=>a.name==='Neurociência').id);
   const linked=discoveryConnections(d,s.areas);
   assert.equal(linked.confirmed[0].name,'Neurociência');assert.ok(!linked.suggested.some(x=>x.area.name==='Neurociência'));
   const indirect=makeDiscovery('https://example.org','Capilaridade');
-  assert.ok(!discoveryConnections(indirect,s.areas).terms.some(t=>t.word==='API'));
+  assert.equal(discoveryConnections(indirect,s.areas).suggested.length,0);
   const note={discoveryId:indirect.id,title:'Uma ideia',body:'O cérebro e a memória',bookId:''};
   assert.ok(discoveryConnections(indirect,s.areas,[note]).suggested.some(x=>x.area.name==='Neurociência'));
   assert.equal(discoveryConnections(indirect,s.areas,[{...note,bookId:'book'}]).suggested.length,0);

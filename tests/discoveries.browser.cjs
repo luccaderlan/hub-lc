@@ -29,10 +29,10 @@ module.exports=async({browser,origin,out})=>{
     assert.equal(new URL(await page.locator('.point-source').getAttribute('href')).searchParams.get('t'),'522s');
     await page.reload();assert.equal(await page.locator('.discovery-point').count(),1);
 
-    await nav('Áreas');await page.locator('[data-catalog-results] .study-subject strong').filter({hasText:/^Neurociência$/}).click();
+    await nav('Áreas');await page.locator('[data-catalog-search]').fill('Neurociência');await page.locator('[data-catalog-results] .study-subject strong').filter({hasText:/^Neurociência$/}).click();
     assert.equal(await page.locator('.discovery-card').count(),1);
     assert.equal(await page.locator('.discovery-card').getByText('Vínculo sugerido',{exact:true}).count(),1);
-    await action('open-discovery',page.locator('.discovery-card'));
+    await page.locator('.discovery-card .study-material-menu summary').click();await action('open-discovery',page.locator('.discovery-card'));
     const neuro=(await stored()).areas.find(a=>a.name==='Neurociência');
     await page.locator(`[data-action=link-discovery-area][data-area="${neuro.id}"]`).click();
     assert.deepEqual((await stored()).discoveries[0].areaIds,[neuro.id]);
@@ -51,10 +51,8 @@ module.exports=async({browser,origin,out})=>{
     await action('discovery-task');await form.locator('[name=title]').fill('Experimentar revisão de memória');await submit();
     assert.equal((await stored()).tasks[0].discoveryId,d.id);
     await nav('Quadro');await action('open-discovery');
-    await page.locator('[data-action=discovery-term][data-word="API"]').click();
-    const apiCard=page.locator('.term-card').filter({has:page.getByRole('heading',{name:'API',exact:true})});
-    assert.equal(await apiCard.locator('[data-action=open-discovery]').count(),1);
-    await action('open-discovery',apiCard);
+    assert.equal(await page.locator('[data-action=discovery-term]').count(),0);
+    assert.doesNotMatch(await page.locator('#main').innerText(),/dicionário/i);
     await page.screenshot({path:path.join(out,'hub-lc-discovery-detail.png'),fullPage:true});
     for(const width of [1024,360,320]){
       await page.setViewportSize({width,height:900});
@@ -80,13 +78,13 @@ module.exports=async({browser,origin,out})=>{
     assert.equal((await stored()).discoveries.length,0);assert.equal((await stored()).notes[0].discoveryId,'');assert.equal((await stored()).tasks[0].discoveryId,'');
     assert.equal((await stored()).notes[0].body,'Quero experimentar isso nos meus estudos.');
 
-    await nav('Áreas');await page.locator('[data-catalog-results] .study-subject strong').filter({hasText:/^Neurociência$/}).click();
+    await nav('Áreas');await page.locator('[data-catalog-search]').fill('Neurociência');await page.locator('[data-catalog-results] .study-subject strong').filter({hasText:/^Neurociência$/}).click();
     await page.locator('.study-secondary-actions summary').click();await page.locator('[data-action=edit-area]').click();await action('delete-record',form);await submit();
     // Reimporta a descoberta sem a área removida: referências continuam válidas.
     const after=await stored();after.discoveries=[{...backup.discoveries[0],areaIds:[api.id]}];
     await page.locator('#import-file').setInputFiles({name:'updated.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(after))});await submit();
     await nav('Áreas');
-    await page.locator('[data-action=filter-area]').filter({hasText:'APIs'}).click();await page.locator('.study-secondary-actions summary').click();await page.locator('[data-action=edit-area]').click();await action('delete-record',form);await submit();
+    await page.locator('[data-catalog-search]').fill('APIs');await page.locator('[data-action=filter-area]').filter({hasText:'APIs'}).click();await page.locator('.study-secondary-actions summary').click();await page.locator('[data-action=edit-area]').click();await action('delete-record',form);await submit();
     assert.deepEqual((await stored()).discoveries[0].areaIds,[]);
     await nav('Descobertas');
     for(const [kind,title] of [['Artigo','Artigo sobre memória'],['Podcast','Podcast sobre memória'],['Outro','Outro conteúdo']]){
@@ -117,7 +115,7 @@ module.exports=async({browser,origin,out})=>{
       assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
     }
     assert.deepEqual(errors,[]);
-    return 'descobertas: filtro por tipo com persistência e combinação de busca, situação e tema, captura, momentos no vídeo, sugestões e múltiplos temas, notas, quadro, dicionário, duplicatas, backup e exclusões preservando registros; desktop e mobile';
+    return 'descobertas: filtro por tipo com persistência e combinação de busca, situação e tema, captura, momentos no vídeo, sugestões e múltiplos temas, notas, quadro, duplicatas, backup e exclusões preservando registros; desktop e mobile';
   }catch(error){await page.screenshot({path:path.join(out,'discovery-failure.png'),fullPage:true});throw error;}
   finally{await context.close();}
 };

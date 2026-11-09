@@ -15,7 +15,7 @@
 .move-dot{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:700;color:#49206c;pointer-events:none}
 .game-cell.available{outline:2px dashed #49206c;outline-offset:-4px}.game-cell.available .chess-piece{opacity:.55}
 .piece-ready{position:absolute;right:3px;top:3px;width:5px;height:5px;border:1px solid #49206c;border-radius:50%;background:#f1e7ff}
-.game-cell.last-move{background:#d9c8a3}.game-cell.last-move.dark{background:#baa87d}
+.game-cell.last-move{background:#ddd1eb}.game-cell.last-move.dark{background:#b4a0c6}
 .chess-piece{position:relative;z-index:1;font-family:'DejaVu Sans','Segoe UI Symbol','Noto Sans Symbols 2',serif;font-size:clamp(24px,3.4vw,44px);line-height:1;pointer-events:none}
 .chess-piece.black{color:#252e33;text-shadow:0 1px #d8e0dd}.chess-piece.white{color:#fffcf2;text-shadow:1px 0 #293238,-1px 0 #293238,0 1px #293238,0 -1px #293238}
 .checker-piece{display:grid;place-items:center;position:relative;width:69%;height:69%;border:2px solid #3c4b47;border-radius:50%;box-shadow:inset 0 0 0 3px #ffffff30,0 2px 2px #162a3026;font-size:clamp(12px,1.5vw,19px);font-weight:700;pointer-events:none}
@@ -27,6 +27,6 @@
 .promotion-picker{background:var(--soft);padding:14px;margin-bottom:16px;border:1px solid var(--accent);border-radius:8px}.promotion-picker p{font-size:13px;margin-bottom:10px}.promotion-picker .button-row{flex-wrap:wrap}.promotion-picker .btn{text-transform:capitalize}
 .game-rules{margin-top:16px;font-size:12px;color:var(--muted)}.game-rules summary{cursor:pointer;min-height:44px;display:flex;align-items:center;text-decoration:underline;text-underline-offset:4px}.game-rules a{display:inline-block;margin-top:12px;line-height:1.6;color:var(--accent-ink)}
 [data-theme="dark"] .game-cell.light{background:#c2d0c9}[data-theme="dark"] .game-cell.dark{background:#748e85}
-[data-theme="dark"] .game-cell.last-move{background:#c6b78e}[data-theme="dark"] .game-cell.last-move.dark{background:#ad976d}
+[data-theme="dark"] .game-cell.last-move{background:#c1b0d5}[data-theme="dark"] .game-cell.last-move.dark{background:#9d88b4}
 [data-theme="dark"] .tictactoe .game-cell{background:var(--soft)}
 @media(max-width:600px){.game-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:18px}.game-picker button{padding:9px 6px;font-size:12px}.strategy-play{padding:12px}.game-setup{padding:12px}.game-setup .btn{flex:1}.chess-piece{font-size:clamp(24px,7.3vw,40px)}.strategy-game h2{font-size:25px}.game-cell .cell-coordinate{font-size:7px;left:2px;bottom:1px}.strategy-board{border-radius:4px}.strategy-play>.note-status,.strategy-game>.note-status{font-size:11px;line-height:1.7}.piece-ready{right:2px;top:2px;width:4px;height:4px}}

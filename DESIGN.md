@@ -1,5 +1,37 @@
 # Direção visual — Hub LC
 
+## Acesso e planejamento — aplicado em 09/11/2026
+
+Acabamento das abas revisto: fundo transparente integrado à iluminação da home, seleção por sublinhado fino e hover por cor, com tipografia de 16 px no desktop. Ao fixar no topo durante a rolagem, um degradê com bordas suaves mantém a leitura; o fundo da página permanece contínuo na posição inicial.
+
+A lateral mantém seis destinos: Meu espaço, Estudos, Documentos, Biblioteca, Anotações e Sessões. Meu espaço reúne Visão geral e Quadro de atividades; suas abas ficam **abaixo da saudação e do subtítulo**, antes do conteúdo, e permanecem visíveis ao rolar. Ambas as telas conservam o mesmo cabeçalho. O Quadro mantém colunas personalizadas, filtros, prazos opcionais e atividades sem data, com `#board` preservado; Meu espaço fica selecionado na lateral.
+
+Estudos dá prioridade aos assuntos, com Links e vídeos e Todo o acervo em uma faixa discreta antes da busca. Sem assunto fica acessível na visão global do acervo. Documentos tem seleção própria na lateral e lista com Abrir documento e Baixar original. A ajuda de formatos é recolhível. A lista restaura filtros e rolagem ao retornar do leitor.
+
+Esta decisão substitui a organização anterior que mantinha Quadro na lateral e documentos subordinados a Estudos. [Escopo e critérios](PLANO-ACESSO-DOCUMENTOS.md).
+
+## Identidade compartilhada — aplicado em 09/11/2026
+
+Todas as telas seguem a home: paleta neutra clara/escura, luz violeta com reflexo turquesa, lateral de mesma largura, marca, perfil e cabeçalho na mesma escala. Os tokens globais de `editorial.css` centralizam cores, contraste e ações; a classe `cozy-home` reúne a saudação de Meu espaço e a composição específica da Visão geral. Botões principais, campos, diálogos e abas compartilham tipografia, foco e acabamento. Estudos deriva suas superfícies desses tokens, mantendo a hierarquia entre fundo, seção e material. O destaque da última jogada nos jogos usa violeta suave.
+
+A saudação pertence a Meu espaço e aparece nas duas abas; as três colunas continuam exclusivas da Visão geral. Catálogo, leitura, escrita, quadro, cronômetro e jogos mantêm suas estruturas próprias, com a mesma identidade visual. A regressão de identidade compara as cores, a iluminação e a navegação de cada tela com a home nos dois temas e em desktop/mobile.
+
+## Luz central e base neutra — aplicado em 09/11/2026
+
+A luz radial central mantém sua posição, tamanho e suavidade, agora em violeta dessaturado, com um reflexo turquesa discreto à direita. A home usa grafite no escuro e branco suave no claro; superfícies, divisórias e textos secundários acompanham essa base neutra, removendo o viés marrom da versão anterior. A composição aprovada e os detalhes verdes da marca continuam presentes.
+
+## Verde da marca — aplicado em 09/11/2026
+
+O verde turquesa da logo aparece como cor secundária, reutilizando `--progress`, `--progress-ink` e `--progress-soft` nos dois temas. Ele marca a linha de seleção da navegação, as folhas decorativas da home, o ícone e a ação de guardar ideias e as atividades concluídas. O campo de ideia recebe apenas 7% de verde no fundo, com borda e foco coordenados. O violeta continua nas ações principais, na seleção textual e na retomada.
+
+## Meu espaço acolhedor — aplicado em 04/11/2026
+
+A [referência aprovada](docs/referencias/home-aconchegante-aprovada.png) orienta esta home e prevalece sobre a escala compacta anterior: lateral de aproximadamente 282 px em 1672 px, conteúdo começando em x≈340, saudação serifada de até 80 px, “Hoje” e três colunas com divisórias em x≈738 e x≈1188. A retomada horizontal fica abaixo de uma linha em y≈664. As ações secundárias e registros antigos continuam após a área principal.
+
+Os estilos novos são restritos a `body.cozy-home` e componentes `day-*`. Carvão quente, texto marfim, violeta suave e luz radial em CSS substituem o cinza frio somente na home. O ramo é um SVG decorativo leve, oculto da árvore acessível; não usa a captura como fundo nem contém texto. A ilustração é uma interpretação vetorial, não uma reprodução fotográfica das folhas. Georgia e DM Sans locais, marca original e ícones existentes foram preservados.
+
+Até 780 px, as três áreas se empilham na ordem compromissos, atividades e ideia, com data local visível, campos de 16 px e controles de 44 px. Entre 781 e 1100 px, a captura ocupa uma segunda linha. Textos longos quebram e listas crescem naturalmente. Menus nativos `details` concentram ações auxiliares; o formulário da anotação sempre mostra uma ação explícita de salvar. Os dados de exemplo existem apenas nas fixtures de teste.
+
 ## Biblioteca e espaços individuais — aplicado em 28/10/2026
 
 Biblioteca ocupa a terceira posição da lateral, com seleção, ícone próprio e acesso nos menus expandido, recolhido e móvel. Estudos abre o catálogo; assuntos usam filtros locais, e os acervos globais são acessos secundários. Cada espaço usa uma seção por vez; abas com rolagem própria mantêm a seleção visível no celular e o foco após a troca. Caminhos visíveis preservam o contexto ao abrir uma anotação pelo livro ou pela lista global.
@@ -20,7 +52,7 @@ A aplicação segue as referências editoriais fornecidas em 27/10/2026: um cade
 
 ## Conteúdo e conexões
 
-A página inicial usa exclusivamente registros reais. Mostra a sessão ativa ou pausada antes do último registro, abre o assunto correspondente, filtra anotações por assunto e reúne atividades em andamento do quadro. A conclusão de uma atividade usa a coluna Concluído; em quadros sem uma coluna de conclusão reconhecida, a atividade continua editável pelo título.
+A página inicial usa exclusivamente registros reais. Mostra a sessão ativa ou pausada antes do último registro, abre o assunto correspondente, filtra anotações por assunto e reúne atividades em andamento do quadro. A conclusão usa a associação explícita de colunas guardada em `dayPlanning`, sem interpretar nomes personalizados. Sem associação, a primeira marcação solicita a escolha.
 
 Uma ideia solta exibe uma anotação recente. A captura rápida cria uma anotação normal, disponível na lista, na edição e nos backups. As notas vinculadas a referências, documentos ou descobertas também aparecem ao filtrar pelo assunto. As notas de livros permanecem fora da página inicial.
 
@@ -53,7 +85,7 @@ Desvio, jogo da velha, dama e xadrez compartilham uma escolha discreta dentro de
 
 `#areas` é o catálogo, organizado por área → grupo opcional → assunto. Grupos ocupam três colunas no desktop amplo, duas em larguras intermediárias e uma no celular. A busca por nome, área ou grupo ignora acentos e encontra assuntos recolhidos, mostrando seu caminho. Setas apenas expandem/recolhem; cada assunto é um link com destino próprio.
 
-`#areas/<id>` abre o assunto com um título principal, caminho de retorno, busca contextual e uma lista contínua. Tudo, Referências, Documentos, Links e vídeos e Anotações filtram essa mesma estrutura. O cabeçalho concentra Adicionar material; edição e exportação ficam em ações secundárias. Não há árvore permanente, seletor de área ou abas globais de formatos no assunto. A preferência do menu principal permanece intacta. Todo o acervo e Sem assunto são acessos secundários; Documentos e Links e vídeos globais ficam em Todo o acervo. Dicionário continua global.
+`#areas/<id>` abre o assunto com um título principal, caminho de retorno, busca contextual e uma lista contínua. Tudo, Referências, Documentos, Links e vídeos e Anotações filtram essa mesma estrutura. O cabeçalho concentra Adicionar material; edição e exportação ficam em ações secundárias. Não há árvore permanente, seletor de área ou abas globais de formatos no assunto. A preferência do menu principal permanece intacta. Todo o acervo e Sem assunto são acessos secundários; Documentos e Links e vídeos globais ficam em Todo o acervo.
 
 Trocar assunto abre um painel opaco de 320 px, sobreposto ao conteúdo. Mouse abre após 200 ms e permite travessia com tolerância de 260 ms. Clique fixa o painel; Enter/Espaço abrem e focam a busca. Escape, Fechar e clique fora fecham; Escape e Fechar restauram o foco ao gatilho. Até 780 px, toque/clique abre um `dialog` modal nativo, que contém o foco e torna o fundo inerte. A busca do painel só atualiza seu conteúdo. Navegar fecha o painel e foca o título de destino. O assunto atual abre com seus ancestrais expandidos; a expansão temporária do painel não altera os grupos recolhidos do catálogo.
 

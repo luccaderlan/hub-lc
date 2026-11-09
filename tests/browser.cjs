@@ -19,6 +19,8 @@ const mark=text=>{reports.push(text);console.log('OK:',text);};
   const submit=()=>form.locator('button[type=submit]').click();
   const stored=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('hub-lc:v1')));
   try{
+    if(process.argv.includes('--navigation-only')){mark(await require('./personal-navigation.browser.cjs')({browser,origin,out}));return;}
+    if(process.argv.includes('--home-only')){mark(await require('./home-day.browser.cjs')({browser,origin,out}));return;}
     if(process.argv.includes('--study-navigation-only')){mark(await require('./study-navigation.browser.cjs')({browser,origin,out}));return;}
     if(process.argv.includes('--study-surfaces-only')){mark(await require('./study-surfaces.browser.cjs')({browser,origin,out}));return;}
     if(process.argv.includes('--studies-only')){mark(await require('./studies.browser.cjs')({browser,origin,out}));return;}
@@ -28,6 +30,7 @@ const mark=text=>{reports.push(text);console.log('OK:',text);};
     if(process.argv.includes('--spaces-only')){mark(await require('./spaces.browser.cjs')({browser,origin,out}));return;}
     if(process.argv.includes('--games-only')){mark(await require('./games.browser.cjs')({browser,origin,out}));return;}
     if(process.argv.includes('--pause-puzzle-only')){mark(await require('./pause-puzzle.browser.cjs')({browser,origin,out}));return;}
+    if(process.argv.includes('--document-fullscreen-only')){mark(await require('./document-fullscreen.browser.cjs')({browser,origin,out}));return;}
     if(process.argv.includes('--documents-only')){mark(await require('./documents.browser.cjs')({browser,origin,out}));return;}
     if(process.argv.includes('--brand-preview')){
       for(const mode of ['light','dark']){
@@ -144,43 +147,21 @@ const mark=text=>{reports.push(text);console.log('OK:',text);};
     assert.ok(!(await stored()).areas.some(a=>a.name==='História'));assert.equal((await stored()).tasks[0].areaId,'');assert.ok((await stored()).materials.some(m=>m.title==='Minha referência'));
     mark('excluir uma área preserva atividades, conteúdos e registros vinculados');
 
-    await nav('Dicionário');
-    assert.match(await page.locator('.info-box').innerText(),/330 registros/);
-    assert.equal(await page.locator('.term-card').count(),24);
-    await action('more-terms');assert.equal(await page.locator('.term-card').count(),48);
-    await page.locator('[data-query]').fill('garçom');
-    assert.ok(await page.locator('.term-card').count()>=2);
-    await page.locator('[data-query]').fill('');
-    await page.locator('[data-filter=dictionary]').selectOption('Backend / Arquitetura');
-    assert.ok((await page.locator('.term-card .badge').allTextContents()).every(c=>c==='Backend / Arquitetura'));
-    await page.locator('[data-query]').fill('API (Application Programming Interface)');
-    assert.equal(await page.locator('.term-card').count(),1);
-    await page.locator('.term-details summary').click();
-    await page.locator('.term-details').getByRole('heading',{name:'Exemplo',exact:true}).waitFor();
-    assert.ok((await page.locator('.term-card .card-footer a').getAttribute('href')).includes('3b19a781589481508fb8ef50c724797a'));
-    await page.reload();assert.equal(await page.locator('[data-filter=dictionary]').inputValue(),'Backend / Arquitetura');
-    await page.locator('[data-query]').fill('termo que não existe no dicionário');assert.equal(await page.locator('.term-card').count(),0);
-    mark('dicionário: 330 registros, paginação, busca nos campos, categorias, comparação, exemplo e origem no Notion');
-
     await nav('Meu espaço');await page.locator('[name=pref-theme]').count();
     // Captura interna para revisar a interface, sem gerar novos protótipos.
     await page.screenshot({path:path.join(out,'hub-lc-desktop.png'),fullPage:true});
     await nav('Áreas');await page.screenshot({path:path.join(out,'hub-lc-divisions.png'),fullPage:true});
     await page.locator('[data-catalog-search]').fill('Java');await page.locator('[data-catalog-results] .study-subject strong').filter({hasText:/^Java$/}).click();await page.screenshot({path:path.join(out,'hub-lc-ti.png'),fullPage:true});
-    await nav('Dicionário');await page.locator('[data-query]').fill('API');await page.screenshot({path:path.join(out,'hub-lc-dictionary.png'),fullPage:true});
     for(const width of [1024,360,320]){
       await page.setViewportSize({width,height:900});
-      for(const name of ['Meu espaço','Áreas','Descobertas','Quadro','Biblioteca','Anotações','Sessões','Evolução','Dicionário','Preferências']){
+      for(const name of ['Meu espaço','Áreas','Descobertas','Quadro','Biblioteca','Anotações','Sessões','Evolução','Preferências']){
         if(width<781&&name==='Preferências')await page.locator('.topbar [data-view=settings]').click();else await nav(name);
         const dimensions=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:innerWidth}));assert.ok(dimensions.scroll<=dimensions.width+1,`${name} transborda em ${width}px`);
         if(name==='Áreas'){
           await page.locator('[data-catalog-search]').fill('Java');await page.locator('[data-catalog-results] .study-subject strong').filter({hasText:/^Java$/}).click();
           const fit=await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1);assert.equal(fit,true);
         }
-        if(name==='Dicionário'){
-          await page.locator('.term-details summary').first().click();
-          const fit=await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1);assert.equal(fit,true);
-        }
+
         if(name==='Anotações'){
           await page.locator('.note-list button').filter({hasText:'Conexões entre ideias'}).click();
           const fit=await page.evaluate(()=>{const c=document.querySelector('.canvas').getBoundingClientRect();return [...document.querySelectorAll('.sticky')].every(s=>{const r=s.getBoundingClientRect();return r.left>=c.left&&r.right<=c.right+1&&r.bottom<=c.bottom+1;});});assert.equal(fit,true);
@@ -202,20 +183,21 @@ const mark=text=>{reports.push(text);console.log('OK:',text);};
     for(const mode of ['light','dark']){
       await identityPage.setViewportSize({width:1440,height:1050});
       await identityNav('Preferências');await identityPage.locator('[name=pref-theme]').selectOption(mode);
-      const colors=await identityPage.evaluate(()=>{
-        const css=getComputedStyle(document.documentElement);
-        return Object.fromEntries(['--bg','--surface','--side','--text','--muted','--line','--accent','--progress'].map(key=>[key,css.getPropertyValue(key).trim().toUpperCase()]));
+      const readIdentity=()=>identityPage.evaluate(()=>{
+        const css=getComputedStyle(document.body),sidebar=document.querySelector('.sidebar');
+        return {
+          colors:Object.fromEntries(['--bg','--surface','--side','--text','--muted','--line','--accent','--progress'].map(key=>[key,css.getPropertyValue(key).trim()])),
+          lighting:getComputedStyle(document.querySelector('.workspace')).backgroundImage,
+          sidebarWidth:sidebar.getBoundingClientRect().width,
+          navFont:getComputedStyle(sidebar.querySelector('.nav-text')).fontSize,
+        };
       });
-      assert.equal(colors['--bg'],mode==='light'?'#FDFBF8':'#191A20');
-      assert.equal(colors['--text'],mode==='light'?'#35384D':'#D6D1CD');
-      assert.equal(colors['--line'],mode==='light'?'#DEDBD6':'#38373F');
-      assert.equal(colors['--surface'],mode==='light'?'#FDFBF8':'#191A20');
-      assert.equal(colors['--accent'],mode==='light'?'#7841EE':'#B297FF');
-      assert.equal(colors['--progress'],mode==='light'?'#25A79B':'#54BDAF');
       for(const width of [1440,360,320]){
         await identityPage.setViewportSize({width,height:1050});
-        for(const name of ['Meu espaço','Áreas','Descobertas','Quadro','Biblioteca','Anotações','Sessões','Evolução','Dicionário']){
+        await identityNav('Meu espaço');const homeIdentity=await readIdentity();
+        for(const name of ['Meu espaço','Áreas','Descobertas','Quadro','Biblioteca','Anotações','Sessões','Evolução']){
           await identityNav(name);
+          assert.deepEqual(await readIdentity(),homeIdentity,`${name}: identidade e navegação devem acompanhar a home`);
           assert.ok(await identityPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`${name} transborda no modo ${mode} em ${width}px`);
           assert.ok(await logo.evaluate(img=>img.complete&&img.naturalWidth>0));
           if(width===1440&&name==='Descobertas'){
@@ -234,12 +216,15 @@ const mark=text=>{reports.push(text);console.log('OK:',text);};
     mark(await require('./pause-puzzle.browser.cjs')({browser,origin,out}));
     mark(await require('./games.browser.cjs')({browser,origin,out}));
     mark(await require('./sidebar.browser.cjs')({browser,origin,out}));
+    mark(await require('./home-day.browser.cjs')({browser,origin,out}));
     mark(await require('./editorial.browser.cjs')({browser,origin,out}));
     mark(await require('./ui.browser.cjs')({browser,origin,out}));
     mark(await require('./usability.browser.cjs')({browser,origin,out}));
     mark(await require('./notes.browser.cjs')({browser,origin,out}));
     mark(await require('./discoveries.browser.cjs')({browser,origin,out}));
     mark(await require('./documents.browser.cjs')({browser,origin,out}));
+    mark(await require('./document-fullscreen.browser.cjs')({browser,origin,out}));
+    mark(await require('./personal-navigation.browser.cjs')({browser,origin,out}));
     mark(await require('./study-navigation.browser.cjs')({browser,origin,out}));
     mark(await require('./study-surfaces.browser.cjs')({browser,origin,out}));
     mark(await require('./studies.browser.cjs')({browser,origin,out}));

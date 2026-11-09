@@ -1,5 +1,34 @@
 # Histórico de alterações
 
+## 09/11/2026 — Remoção do Dicionário DEV
+
+- Removidos a tela, os atalhos, as preferências e as conexões de termos em Descobertas.
+- Excluída a cópia pessoal de 330 termos e seus links do Notion. Registros e backups antigos descartam os campos do dicionário, preservando os demais dados.
+
+## 09/11/2026 — Leitura de documentos em tela cheia
+
+- Botão Tela cheia no leitor de PDF, texto e imagem, com título e saída visível. A ampliação mantém os elementos e URLs da prévia, sem recarregar o arquivo.
+- Uso da tela cheia nativa quando disponível, com alternativa que ocupa a janela; saída pelo botão, Esc ou controle do navegador restaura a interface e o foco.
+- Layout adaptável, isolamento do foco e limpeza da ampliação ao navegar; formatos sem prévia e arquivos indisponíveis não mostram a ação.
+- Teste de navegador dedicado nos dois temas, entre 320 e 1440 px.
+
+## 09/11/2026 — Documentos direto e Quadro em Meu espaço
+
+- Acabamento das abas integrado à home: fundo transparente, sublinhado fino e hover por cor; degradê suave apenas quando a navegação fica presa no topo durante a rolagem.
+
+- Lateral com seis destinos: Documentos passa a ter entrada própria; Quadro de atividades fica ao lado de Visão geral em Meu espaço, com abas permanentes abaixo da saudação e do subtítulo. A rota `#board`, colunas e atividades sem data continuam funcionando.
+- Estudos com Links e vídeos e Todo o acervo antes dos assuntos, Dicionário junto da busca e Sem assunto acessível no acervo global.
+- Download do original diretamente na lista; retorno do leitor conserva busca, assunto, formato e rolagem. Ajuda de formatos compacta e confirmação do assunto ao enviar pela lista filtrada.
+- Testes dedicados de navegação, teclado, histórico, retomada, arquivos e layout nos dois temas entre 320 e 1440 px. Nenhuma migração dos registros ou arquivos.
+
+## 04/11/2026 — Meu espaço acolhedor
+
+- Composição da referência aprovada com saudação local, três áreas de Hoje, retomada horizontal, temas claro/escuro e adaptação móvel; preservação dos atalhos e conteúdos anteriores abaixo do recorte principal.
+- Compromissos com criação, edição, exclusão confirmada e consulta de outras datas. Atividades do dia usam o mesmo registro do Quadro, com planejamento separado do prazo, conclusão explícita/reversível e retirada sem exclusão.
+- Captura inline com rascunho persistido e gravação em Anotações sem duplicação. Retomada baseada em sessões/anotações reais; primeiro acesso sem histórico fictício.
+- Validação/migração aditiva dos dois backups, datas locais e atualização na virada do dia; novas gravações transacionais com retry em falhas. Sem servidor, serviços externos, recorrência ou avisos de compromissos em segundo plano.
+- Testes específicos de dados/navegador, regressões existentes e capturas dos estados vazios, preenchidos e longos em ambos os temas. Evidências e limites em AVALIACAO-UI-UX.md.
+
 ## 28/10/2026 — Biblioteca e espaços individuais implementados
 
 - Biblioteca independente na lateral, retirada de Estudos e compatibilidade com atalhos antigos. URLs por livro/anotação/seção, histórico, caminhos e retorno ao filtro do acervo.
